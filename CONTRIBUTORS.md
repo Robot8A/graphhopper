@@ -44,6 +44,8 @@ Here is an overview:
  * lmar, improved instructions
  * michaz, one of the core developers
  * mprins, improvements for travis CI and regarding JDK9 #806
+ * msbarry, fixes like #1733
+ * njanakiev, fixes like #1560
  * NopMap, massive improvements regarding OSM, parsing and encoding, route relations
  * ocampana, initial implementation for instructions
  * PGWelch, shapefile reader #874

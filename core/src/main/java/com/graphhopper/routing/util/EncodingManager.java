@@ -25,10 +25,7 @@ import com.graphhopper.routing.util.parsers.OSMRoundaboutParser;
 import com.graphhopper.routing.util.parsers.TagParser;
 import com.graphhopper.routing.util.parsers.TagParserFactory;
 import com.graphhopper.routing.weighting.TurnWeighting;
-import com.graphhopper.storage.Directory;
-import com.graphhopper.storage.IntsRef;
-import com.graphhopper.storage.RAMDirectory;
-import com.graphhopper.storage.StorableProperties;
+import com.graphhopper.storage.*;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.PMap;
@@ -45,6 +42,7 @@ import static com.graphhopper.util.Helper.toLowerCase;
  *
  * @author Peter Karich
  * @author Nop
+ * @author Andrzej Oles
  */
 public class EncodingManager implements EncodedValueLookup {
     private static final String ERR = "Encoders are requesting %s bits, more than %s bits of %s flags. ";
@@ -451,6 +449,7 @@ public class EncodingManager implements EncodedValueLookup {
     public static class AcceptWay {
         private Map<String, Access> accessMap;
         boolean hasAccepted = false;
+        boolean hasConditional = false;
 
         public AcceptWay() {
             this.accessMap = new HashMap<>(5);
@@ -468,6 +467,8 @@ public class EncodingManager implements EncodedValueLookup {
             accessMap.put(key, access);
             if (access != Access.CAN_SKIP)
                 hasAccepted = true;
+            if (access.isConditional())
+                hasConditional = true;
             return this;
         }
 
@@ -488,10 +489,18 @@ public class EncodingManager implements EncodedValueLookup {
                 throw new IllegalStateException("Cannot determine Access if map is empty");
             return accessMap.values().iterator().next();
         }
+
+        public Access getAccess(String key) {
+            return accessMap.get(key);
+        }
+
+        public boolean hasConditional () {
+            return hasConditional;
+        }
     }
 
     public enum Access {
-        WAY, FERRY, OTHER, CAN_SKIP;
+        WAY, FERRY, OTHER, CAN_SKIP, PERMITTED, RESTRICTED;
 
         public boolean isFerry() {
             return this.ordinal() == FERRY.ordinal();
@@ -508,6 +517,19 @@ public class EncodingManager implements EncodedValueLookup {
         public boolean canSkip() {
             return this.ordinal() == CAN_SKIP.ordinal();
         }
+
+        public boolean isPermitted() {
+            return this.ordinal() == PERMITTED.ordinal();
+        }
+
+        public boolean isRestricted() {
+            return this.ordinal() == RESTRICTED.ordinal();
+        }
+
+        public boolean isConditional() {
+            return isRestricted() || isPermitted();
+        }
+
     }
 
     public long handleRelationTags(long oldRelationFlags, ReaderRelation relation) {
@@ -658,6 +680,22 @@ public class EncodingManager implements EncodedValueLookup {
     public boolean needsTurnCostsSupport() {
         for (FlagEncoder encoder : edgeEncoders) {
             if (encoder.supports(TurnWeighting.class))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasConditionalAccess() {
+        for (FlagEncoder encoder : edgeEncoders) {
+            if (hasEncodedValue(getKey(encoder, ConditionalEdges.ACCESS)))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasConditionalSpeed() {
+        for (FlagEncoder encoder : edgeEncoders) {
+            if (hasEncodedValue(getKey(encoder, ConditionalEdges.SPEED)))
                 return true;
         }
         return false;

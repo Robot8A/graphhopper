@@ -33,7 +33,7 @@ import com.graphhopper.util.StopWatch;
 import com.graphhopper.util.Translation;
 import com.graphhopper.util.exceptions.PointNotFoundException;
 import com.graphhopper.util.shapes.GHPoint;
-
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +63,10 @@ public class ViaRoutingTemplate extends AbstractRoutingTemplate implements Routi
         if (points.size() < 2)
             throw new IllegalArgumentException("At least 2 points have to be specified, but was:" + points.size());
 
-        EdgeFilter edgeFilter = DefaultEdgeFilter.allEdges(encoder);
+        // ORS-GH MOD START
+        // use edgeFilter passed from outside
+        // EdgeFilter edgeFilter = DefaultEdgeFilter.allEdges(encoder);
+        // ORS-GH MOD END
         EdgeFilter strictEdgeFilter = !ghRequest.hasSnapPreventions() ? edgeFilter : new SnapPreventionEdgeFilter(edgeFilter,
                 encoder.getEnumEncodedValue(RoadClass.KEY, RoadClass.class),
                 encoder.getEnumEncodedValue(RoadEnvironment.KEY, RoadEnvironment.class), ghRequest.getSnapPreventions());
@@ -119,7 +122,14 @@ public class ViaRoutingTemplate extends AbstractRoutingTemplate implements Routi
             sw = new StopWatch().start();
 
             // calculate paths
-            List<Path> tmpPathList = algo.calcPaths(fromQResult.getClosestNode(), toQResult.getClosestNode());
+            List<Path> tmpPathList;
+            String time = algoOpts.getHints().has("departure") ? algoOpts.getHints().get("departure", "") : algoOpts.getHints().get("arrival", "");
+            if (!time.isEmpty()) {
+                tmpPathList = algo.calcPaths(fromQResult.getClosestNode(), toQResult.getClosestNode(), Instant.parse(time).toEpochMilli());
+            } else {
+                tmpPathList = algo.calcPaths(fromQResult.getClosestNode(), toQResult.getClosestNode());
+            }
+
             debug += ", " + algo.getName() + "-routing:" + sw.stop().getSeconds() + "s";
             if (tmpPathList.isEmpty())
                 throw new IllegalStateException("At least one path has to be returned for " + fromQResult + " -> " + toQResult);

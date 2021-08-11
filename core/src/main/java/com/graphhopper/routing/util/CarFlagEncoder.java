@@ -19,8 +19,13 @@ package com.graphhopper.routing.util;
 
 import com.graphhopper.reader.ReaderRelation;
 import com.graphhopper.reader.ReaderWay;
+import com.graphhopper.reader.osm.conditional.ConditionalOSMSpeedInspector;
+import com.graphhopper.reader.osm.conditional.ConditionalParser;
+import com.graphhopper.routing.profiles.BooleanEncodedValue;
 import com.graphhopper.routing.profiles.EncodedValue;
+import com.graphhopper.routing.profiles.SimpleBooleanEncodedValue;
 import com.graphhopper.routing.profiles.UnsignedDecimalEncodedValue;
+import com.graphhopper.storage.ConditionalEdges;
 import com.graphhopper.storage.IntsRef;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.PMap;
@@ -32,6 +37,7 @@ import java.util.*;
  *
  * @author Peter Karich
  * @author Nop
+ * @author Andrzej Oles
  */
 public class CarFlagEncoder extends AbstractFlagEncoder {
     protected final Map<String, Integer> trackTypeSpeedMap = new HashMap<>();
@@ -49,6 +55,9 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
      * http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Maxspeed
      */
     protected final Map<String, Integer> defaultSpeedMap = new HashMap<>();
+
+    private BooleanEncodedValue conditionalEncoder;
+    private BooleanEncodedValue conditionalSpeedEncoder;
 
     public CarFlagEncoder() {
         this(5, 5, 0);
@@ -150,6 +159,14 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
     }
 
     @Override
+    protected void init() {
+        super.init();
+        ConditionalOSMSpeedInspector conditionalOSMSpeedInspector = new ConditionalOSMSpeedInspector(Arrays.asList("maxspeed"));
+        conditionalOSMSpeedInspector.addValueParser(ConditionalParser.createDateTimeParser());
+        setConditionalSpeedInspector(conditionalOSMSpeedInspector);
+    }
+
+    @Override
     public int getVersion() {
         return 2;
     }
@@ -162,6 +179,9 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         // first two bits are reserved for route handling in superclass
         super.createEncodedValues(registerNewEncodedValue, prefix, index);
         registerNewEncodedValue.add(speedEncoder = new UnsignedDecimalEncodedValue(EncodingManager.getKey(prefix, "average_speed"), speedBits, speedFactor, speedTwoDirections));
+        // FIXME: shouldn't this be directional?
+        registerNewEncodedValue.add(conditionalEncoder = new SimpleBooleanEncodedValue(EncodingManager.getKey(prefix, ConditionalEdges.ACCESS), false));
+        registerNewEncodedValue.add(conditionalSpeedEncoder = new SimpleBooleanEncodedValue(EncodingManager.getKey(prefix, ConditionalEdges.SPEED), false));
     }
 
     protected double getSpeed(ReaderWay way) {
@@ -205,7 +225,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
 
         if ("track".equals(highwayValue)) {
             String tt = way.getTag("tracktype");
-            if (tt != null && !tt.equals("grade1") && !tt.equals("grade2") && !tt.equals("grade3"))
+            if (tt !=  null && !tt.equals("grade1") && !tt.equals("grade2") && !tt.equals("grade3"))
                 return EncodingManager.Access.CAN_SKIP;
         }
 
@@ -217,8 +237,8 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
 
         // multiple restrictions needs special handling compared to foot and bike, see also motorcycle
         if (!firstValue.isEmpty()) {
-            if (restrictedValues.contains(firstValue) && !getConditionalTagInspector().isRestrictedWayConditionallyPermitted(way))
-                return EncodingManager.Access.CAN_SKIP;
+            if (restrictedValues.contains(firstValue))
+                return isRestrictedWayConditionallyPermitted(way);
             if (intendedValues.contains(firstValue))
                 return EncodingManager.Access.WAY;
         }
@@ -227,10 +247,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         if (isBlockFords() && ("ford".equals(highwayValue) || way.hasTag("ford")))
             return EncodingManager.Access.CAN_SKIP;
 
-        if (getConditionalTagInspector().isPermittedWayConditionallyRestricted(way))
-            return EncodingManager.Access.CAN_SKIP;
-        else
-            return EncodingManager.Access.WAY;
+        return isPermittedWayConditionallyRestricted(way);
     }
 
     @Override
@@ -246,7 +263,16 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         if (!accept.isFerry()) {
             // get assumed speed from highway type
             double speed = getSpeed(way);
+
             speed = applyMaxSpeed(way, speed);
+
+            // TODO: save conditional speeds only if their value is different from the default speed
+            if (getConditionalSpeedInspector().hasConditionalSpeed(way))
+                if (getConditionalSpeedInspector().hasLazyEvaluatedConditions())
+                    conditionalSpeedEncoder.setBool(false, edgeFlags, true);
+                else
+                    // conditional maxspeed overrides unconditional one
+                    speed = applyConditionalSpeed(getConditionalSpeedInspector().getTagValue(), speed);
 
             speed = applyBadSurfaceSpeed(way, speed);
 
@@ -254,16 +280,20 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
             if (speedTwoDirections)
                 setSpeed(true, edgeFlags, speed);
 
+            boolean access = !accept.isRestricted();
             boolean isRoundabout = roundaboutEnc.getBool(false, edgeFlags);
             if (isOneway(way) || isRoundabout) {
                 if (isForwardOneway(way))
-                    accessEnc.setBool(false, edgeFlags, true);
+                    accessEnc.setBool(false, edgeFlags, access);
                 if (isBackwardOneway(way))
-                    accessEnc.setBool(true, edgeFlags, true);
+                    accessEnc.setBool(true, edgeFlags, access);
             } else {
-                accessEnc.setBool(false, edgeFlags, true);
-                accessEnc.setBool(true, edgeFlags, true);
+                accessEnc.setBool(false, edgeFlags, access);
+                accessEnc.setBool(true, edgeFlags, access);
             }
+
+            if (accept.isConditional())
+                conditionalEncoder.setBool(false, edgeFlags, true);
 
         } else {
             double ferrySpeed = getFerrySpeed(way);
@@ -283,6 +313,12 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
             }
         }
         return edgeFlags;
+    }
+
+    public final BooleanEncodedValue getConditionalEnc() {
+        if (conditionalEncoder == null)
+            throw new NullPointerException("FlagEncoder " + toString() + " not yet initialized");
+        return conditionalEncoder;
     }
 
     /**

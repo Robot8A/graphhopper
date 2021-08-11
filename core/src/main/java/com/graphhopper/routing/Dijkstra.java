@@ -41,8 +41,12 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
     protected IntObjectMap<SPTEntry> fromMap;
     protected PriorityQueue<SPTEntry> fromHeap;
     protected SPTEntry currEdge;
-    private int visitedNodes;
-    private int to = -1;
+    protected int visitedNodes;
+    protected int to = -1;
+
+    // ORS-GH MOD START Modification by Maxim Rylov: Added a new class variable used for computing isochrones.
+    protected Boolean reverseDirection = false;
+    // ORS-GH MOD END
 
     public Dijkstra(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
@@ -54,6 +58,12 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
         fromHeap = new PriorityQueue<>(size);
         fromMap = new GHIntObjectHashMap<>(size);
     }
+
+    // ORS-GH MOD START Modification by Maxim Rylov: Added a new method.
+    public void setReverseDirection(Boolean reverse) {
+        reverseDirection = reverse;
+    }
+    // ORS-GH MOD END
 
     @Override
     public Path calcPath(int from, int to) {
@@ -68,7 +78,7 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
     }
 
     protected void runAlgo() {
-        EdgeExplorer explorer = outEdgeExplorer;
+        EdgeExplorer explorer = reverseDirection ? inEdgeExplorer : outEdgeExplorer;
         while (true) {
             visitedNodes++;
             if (isMaxVisitedNodesExceeded() || finished())
@@ -80,21 +90,34 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double tmpWeight = weighting.calcWeight(iter, false, currEdge.edge) + currEdge.weight;
+                // ORS-GH MOD START
+                // REMOVED: causes test failure, investigate
+                double tmpWeight = weighting.calcWeight(iter, reverseDirection, currEdge.edge) + currEdge.weight;
+                // Modification by Maxim Rylov: use originalEdge as the previousEdgeId
+//                double tmpWeight = weighting.calcWeight(iter, reverseDirection, currEdge.originalEdge) + currEdge.weight;
+                // ORS-GH MOD END
                 if (Double.isInfinite(tmpWeight)) {
                     continue;
                 }
+                // ORS TODO: MARQ24 WHY the heck the 'reverseDirection' is not used also for the traversal ID ???
                 int traversalId = traversalMode.createTraversalId(iter, false);
 
                 SPTEntry nEdge = fromMap.get(traversalId);
                 if (nEdge == null) {
                     nEdge = new SPTEntry(iter.getEdge(), iter.getAdjNode(), tmpWeight);
                     nEdge.parent = currEdge;
+                    // ORS-GH MOD START
+                    // Modification by Maxim Rylov: Assign the original edge id.
+                    nEdge.originalEdge = EdgeIteratorStateHelper.getOriginalEdge(iter);
+                    // ORS-GH MOD END
                     fromMap.put(traversalId, nEdge);
                     fromHeap.add(nEdge);
                 } else if (nEdge.weight > tmpWeight) {
                     fromHeap.remove(nEdge);
                     nEdge.edge = iter.getEdge();
+                    // ORS-GH MOD START
+                    nEdge.originalEdge = EdgeIteratorStateHelper.getOriginalEdge(iter);
+                    // ORS-GH MOD END
                     nEdge.weight = tmpWeight;
                     nEdge.parent = currEdge;
                     fromHeap.add(nEdge);
@@ -123,7 +146,7 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
         if (currEdge == null || !finished())
             return createEmptyPath();
 
-        return new Path(graph, weighting).
+        return new Path(graph, weighting, reverseDirection).
                 setWeight(currEdge.weight).setSPTEntry(currEdge).extract();
     }
 

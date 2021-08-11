@@ -190,9 +190,11 @@ public class DataFlagEncoder extends AbstractFlagEncoder {
     }
 
     @Override
-    double getSpeed(boolean reverse, IntsRef flags) {
+    // ORS-GH MOD - change access level from package-private to public due to change in superclass
+    public double getSpeed(boolean reverse, IntsRef flags) {
         throw new UnsupportedOperationException("Calculate speed via more customizable Weighting.calcMillis method");
     }
+    // ORS GH MOD end
 
     @Override
     protected double getMaxSpeed(ReaderWay way) {

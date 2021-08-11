@@ -29,6 +29,7 @@ import java.util.*;
  * <p>
  *
  * @author Robin Boldt
+ * @author Andrzej Oles
  */
 public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -37,13 +38,19 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     // enabling by default makes noise but could improve OSM data
     private boolean enabledLogs = true;
 
-    public ConditionalOSMTagInspector(Object value, List<String> tagsToCheck,
-                                      Set<String> restrictiveValues, Set<String> permittedValues) {
-        this(tagsToCheck, Arrays.asList(new DateRangeParser((Calendar) value)), restrictiveValues, permittedValues, false);
+    private String val;
+    private boolean isLazyEvaluated;
+
+    @Override
+    public String getTagValue() {
+        return val;
     }
 
-    public ConditionalOSMTagInspector(List<String> tagsToCheck, List<? extends ConditionalValueParser> valueParsers,
-                                      Set<String> restrictiveValues, Set<String> permittedValues, boolean enabledLogs) {
+    public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
+        this(tagsToCheck, restrictiveValues, permittedValues, false);
+    }
+
+    public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues, boolean enabledLogs) {
         this.tagsToCheck = new ArrayList<>(tagsToCheck.size());
         for (String tagToCheck : tagsToCheck) {
             this.tagsToCheck.add(tagToCheck + ":conditional");
@@ -55,10 +62,6 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
         boolean logUnsupportedFeatures = false;
         this.permitParser = new ConditionalParser(permittedValues, logUnsupportedFeatures);
         this.restrictiveParser = new ConditionalParser(restrictiveValues, logUnsupportedFeatures);
-        for (ConditionalValueParser cvp : valueParsers) {
-            permitParser.addConditionalValueParser(cvp);
-            restrictiveParser.addConditionalValueParser(cvp);
-        }
     }
 
     public void addValueParser(ConditionalValueParser vp) {
@@ -68,30 +71,33 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
 
     @Override
     public boolean isRestrictedWayConditionallyPermitted(ReaderWay way) {
-        return applies(way, true);
+        return applies(way, permitParser);
     }
 
     @Override
     public boolean isPermittedWayConditionallyRestricted(ReaderWay way) {
-        return applies(way, false);
+        return applies(way, restrictiveParser);
     }
 
-    protected boolean applies(ReaderWay way, boolean checkPermissiveValues) {
+    @Override
+    public boolean hasLazyEvaluatedConditions() {
+        return isLazyEvaluated;
+    }
+
+    protected boolean applies(ReaderWay way, ConditionalParser parser) {
+        isLazyEvaluated = false;
         for (int index = 0; index < tagsToCheck.size(); index++) {
             String tagToCheck = tagsToCheck.get(index);
-            String val = way.getTag(tagToCheck);
+            val = way.getTag(tagToCheck);
             if (val == null || val.isEmpty())
                 continue;
-
             try {
-                if (checkPermissiveValues) {
-                    if (permitParser.checkCondition(val))
-                        return true;
-                } else {
-                    if (restrictiveParser.checkCondition(val))
-                        return true;
-                }
-
+                ConditionalParser.Result result = parser.checkCondition(val);
+                isLazyEvaluated = result.isLazyEvaluated();
+                val = result.getRestrictions();
+                // allow the check result to be false but still have unevaluated conditions
+                if (result.isCheckPassed() || isLazyEvaluated)
+                    return result.isCheckPassed();
             } catch (Exception e) {
                 if (enabledLogs) {
                     // log only if no date ala 21:00 as currently date and numbers do not support time precise restrictions

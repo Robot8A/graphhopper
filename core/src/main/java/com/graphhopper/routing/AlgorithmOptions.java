@@ -17,8 +17,11 @@
  */
 package com.graphhopper.routing;
 
+import com.graphhopper.routing.util.EdgeFilter;
+import com.graphhopper.routing.util.EdgeFilterFactory;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.Weighting;
+import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.util.PMap;
 import com.graphhopper.util.Parameters;
 
@@ -81,6 +84,8 @@ public class AlgorithmOptions {
             b.maxVisitedNodes(opts.maxVisitedNodes);
         if (!opts.hints.isEmpty())
             b.hints(opts.hints);
+        if (opts.edgeFilter != null)
+            b.edgeFilter(opts.edgeFilter);
 
         return b;
     }
@@ -159,6 +164,11 @@ public class AlgorithmOptions {
             return this;
         }
 
+        public Builder edgeFilter(EdgeFilter edgeFilter) {
+            this.opts.edgeFilter = edgeFilter;
+            return this;
+        }
+
         public AlgorithmOptions build() {
             if (buildCalled)
                 throw new IllegalStateException("Cannot call AlgorithmOptions.Builder.build() twice");
@@ -167,4 +177,17 @@ public class AlgorithmOptions {
             return opts;
         }
     }
+
+    // ORS-GH MOD START
+    // ORS TODO: provide a reason for this change
+    protected EdgeFilter edgeFilter;
+
+    public EdgeFilter getEdgeFilter() {
+        return edgeFilter;
+    }
+
+    public void setEdgeFilter(EdgeFilter edgeFilter) {
+        this.edgeFilter = edgeFilter;
+    }
+    // ORS-GH MOD END
 }

@@ -26,6 +26,7 @@ debug.sh
 *.dem
 *.log
 core/TODO*.txt
+core/files/dem*
 srtmprovider/
 core/docs/
 .*#

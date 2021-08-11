@@ -17,6 +17,7 @@
  */
 package com.graphhopper.routing;
 
+import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.weighting.BeelineWeightApproximator;
 import com.graphhopper.routing.weighting.WeightApproximator;
 import com.graphhopper.storage.Graph;
@@ -26,11 +27,16 @@ import com.graphhopper.util.Helper;
 import static com.graphhopper.util.Parameters.Algorithms.*;
 import static com.graphhopper.util.Parameters.Algorithms.AltRoute.*;
 
+// ORS-GH MOD START
+import com.graphhopper.routing.util.EdgeFilter;
+// ORS-GH MOD END
+
 /**
  * A simple factory creating normal algorithms (RoutingAlgorithm) without preparation.
  * <p>
  *
  * @author Peter Karich
+ * @author Andrzej Oles
  */
 public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
     @Override
@@ -42,7 +48,13 @@ public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
         } else if (DIJKSTRA.equalsIgnoreCase(algoStr)) {
             ra = new Dijkstra(g, opts.getWeighting(), opts.getTraversalMode());
 
-        } else if (ASTAR_BI.equalsIgnoreCase(algoStr)) {
+        } else if (TD_DIJKSTRA.equalsIgnoreCase(algoStr)) {
+            TDDijkstra tdd = new TDDijkstra(g, opts.getWeighting(), opts.getTraversalMode());
+            if (opts.getHints().has("arrival"))
+                tdd.reverse();
+            ra = tdd;
+
+        }else if (ASTAR_BI.equalsIgnoreCase(algoStr)) {
             AStarBidirection aStarBi = new AStarBidirection(g, opts.getWeighting(),
                     opts.getTraversalMode());
             aStarBi.setApproximation(getApproximation(ASTAR_BI, opts, g.getNodeAccess()));
@@ -55,6 +67,13 @@ public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
             AStar aStar = new AStar(g, opts.getWeighting(), opts.getTraversalMode());
             aStar.setApproximation(getApproximation(ASTAR, opts, g.getNodeAccess()));
             ra = aStar;
+
+        } else if (TD_ASTAR.equalsIgnoreCase(algoStr)) {
+            TDAStar tda = new TDAStar(g, opts.getWeighting(), opts.getTraversalMode());
+            tda.setApproximation(getApproximation(ASTAR, opts, g.getNodeAccess()));
+            if (opts.getHints().has("arrival"))
+                tda.reverse();
+            ra = tda;
 
         } else if (ALT_ROUTE.equalsIgnoreCase(algoStr)) {
             AlternativeRoute altRouteAlgo = new AlternativeRoute(g, opts.getWeighting(), opts.getTraversalMode());
@@ -70,6 +89,11 @@ public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
         }
 
         ra.setMaxVisitedNodes(opts.getMaxVisitedNodes());
+
+        // ORS-GH MOD START
+        // ORS pass edgefilter to algorithm
+        ra.setEdgeFilter(opts.getEdgeFilter());
+        // ORS-GH MOD END
         return ra;
     }
 

@@ -21,6 +21,7 @@ import com.carrotsearch.hppc.IntObjectMap;
 import com.graphhopper.coll.GHIntObjectHashMap;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.TraversalMode;
+import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.SPTEntry;
@@ -58,6 +59,12 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
     protected boolean finishedTo;
     int visitedCountFrom;
     int visitedCountTo;
+    // ORS-GH MOD START
+    // Modification by Andrzej Oles: ALT patch https://github.com/GIScience/graphhopper/issues/21
+    protected double approximatorOffset = 0.0;
+    // ORS-GH MOD END
+
+
 
     public AbstractBidirAlgo(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
@@ -244,7 +251,11 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
         if (finishedFrom || finishedTo)
             return true;
 
-        return currFrom.weight + currTo.weight >= bestPath.getWeight();
+        // ORS-GH MOD START
+        // Modification by Andrzej Oles: ALT patch https://github.com/GIScience/graphhopper/issues/21
+        //return currFrom.weight + currTo.weight >= bestPath.getWeight();
+        return currFrom.weight + currTo.weight - approximatorOffset >= bestPath.getWeight();
+        // ORS-GH MOD END
     }
 
     boolean fillEdgesFrom() {
@@ -297,6 +308,10 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
             SPTEntry entry = bestWeightMap.get(traversalId);
             if (entry == null) {
                 entry = createEntry(iter, origEdgeId, weight, currEdge, reverse);
+                // ORS-GH MOD START
+                // store actual edge ID for use by getIncomingEdge
+                entry.originalEdge = EdgeIteratorStateHelper.getOriginalEdge(iter);
+                // ORS-GH MOD END
                 bestWeightMap.put(traversalId, entry);
                 prioQueue.add(entry);
             } else if (entry.getWeightOfVisitedPath() > weight) {
@@ -350,7 +365,12 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
     }
 
     protected int getIncomingEdge(SPTEntry entry) {
+        // ORS-GH MOD START
+        // use actual edge ID instead of virtual edge ID (passed to TurnWeighting as prevOrNextEdgeId)
+        if (weighting instanceof TurnWeighting && ((TurnWeighting) weighting).inORS)
+            return entry.originalEdge;
         return entry.edge;
+        // ORS-GH MOD END
     }
 
     protected int getTraversalId(EdgeIteratorState edge, int origEdgeId, boolean reverse) {

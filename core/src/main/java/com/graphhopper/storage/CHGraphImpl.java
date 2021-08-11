@@ -49,7 +49,11 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
     private static final int MAX_WEIGHT_31 = (Integer.MAX_VALUE >> 2) << 2;
     private static final double MAX_WEIGHT = (Integer.MAX_VALUE >> 2) / WEIGHT_FACTOR;
     private static final double MIN_WEIGHT = 1 / WEIGHT_FACTOR;
-    final DataAccess shortcuts;
+    // ORS-GH MOD START - CALT
+    // ORS TODO: provide a reason for removal of 'final'
+    //final DataAccess shortcuts;
+    DataAccess shortcuts;
+    // ORS-GH MOD END
     final DataAccess nodesCH;
     final int scDirMask = PrepareEncoder.getScDirMask();
     private final CHProfile chProfile;
@@ -65,14 +69,27 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
     private int shortcutCount = 0;
     private boolean isReadyForContraction;
 
-    CHGraphImpl(CHProfile chProfile, Directory dir, final BaseGraph baseGraph) {
+    // ORS-GH MOD START
+    // CALT add member variable
+    private boolean isTypeCore;
+    private int coreNodeCount = -1;
+    private int S_TIME;
+    // ORS-GH MOD END
+
+     CHGraphImpl(CHProfile chProfile, Directory dir, final BaseGraph baseGraph) {
         if (chProfile.getWeighting() == null)
             throw new IllegalStateException("Weighting for CHGraph cannot be null");
         this.chProfile = chProfile;
         this.baseGraph = baseGraph;
         final String name = chProfile.toFileName();
-        this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        // ORS-GH MOD START
+        // CALT include type in directory location
+        //this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        //this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        this.nodesCH = dir.find("nodes_" + chProfile.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        this.shortcuts = dir.find("shortcuts_" + chProfile.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        this.isTypeCore = chProfile.getType()==CHProfile.TYPE_CORE;
+        // ORS-GH MOD END
         this.chEdgeAccess = new CHEdgeAccess(name);
     }
 
@@ -186,6 +203,16 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         return (CHEdgeIteratorState) chEdgeAccess.getEdgeProps(edgeId, endNode);
     }
 
+    // ORS-GH MOD START
+    // CALT add methods
+    public int getCoreNodes() {
+        return coreNodeCount;
+    }
+    public void setCoreNodes(int coreNodeCount) {
+        this.coreNodeCount = coreNodeCount;
+    }
+    // ORS-GH MOD END
+
     @Override
     public int getNodes() {
         return baseGraph.getNodes();
@@ -292,12 +319,20 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
     protected int loadEdgesHeader() {
         shortcutCount = shortcuts.getHeader(0 * 4);
         shortcutEntryBytes = shortcuts.getHeader(1 * 4);
+        // ORS-GH MOD START
+        // CALT
+        coreNodeCount = shortcuts.getHeader(2 * 4);
+        // ORS-GH MOD END
         return 3;
     }
 
     protected int setEdgesHeader() {
         shortcuts.setHeader(0 * 4, shortcutCount);
         shortcuts.setHeader(1 * 4, shortcutEntryBytes);
+        // ORS-GH MOD START
+        // CALT
+        shortcuts.setHeader(2 * 4, coreNodeCount);
+        // ORS-GH MOD END
         return 3;
     }
 
@@ -338,6 +373,13 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
             shortcutEntryBytes = S_SKIP_EDGE2 + 4;
         }
 
+        // ORS-GH MOD START: TD CALT
+        if (isTypeCore) {
+            S_TIME = shortcutEntryBytes;
+            shortcutEntryBytes = S_TIME + 4;
+        }
+        // ORS-GH MOD END
+
         // node based data:
         N_LEVEL = 0;
         N_CH_REF = N_LEVEL + 4;
@@ -349,6 +391,15 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         shortcuts.setSegmentSize(bytes);
     }
 
+    // ORS-GH MOD START
+    // CALT add method
+    public CHGraphImpl setShortcutsStorage(Weighting w, Directory dir, String suffix, boolean edgeBased){
+        final String name = AbstractWeighting.weightingToFileName(w);
+        this.shortcuts = dir.find("shortcuts_" + suffix + name);
+        return this;
+    }
+
+    // ORS-GH MOD END
     @Override
     public CHGraph create(long bytes) {
         nodesCH.create(bytes);
@@ -457,6 +508,18 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
             }
         };
     }
+
+    // ORS-GH MOD START: TD CALT
+    @Override
+    public int shortcutCore(int a, int b, int accessFlags, double weight, int skippedEdge1, int skippedEdge2, long time) {
+        if (!isTypeCore) {
+            throw new IllegalStateException("Time can be added to shortcuts only for core graph");
+        }
+        int scId = shortcut(a, b, accessFlags, weight, skippedEdge1, skippedEdge2);
+        chEdgeAccess.setTime(chEdgeAccess.toPointer(scId), time);
+        return scId;
+    }
+    // ORS-GH MOD END
 
     class CHEdgeIteratorImpl extends EdgeIterable implements CHEdgeExplorer, CHEdgeIterator {
         public CHEdgeIteratorImpl(BaseGraph baseGraph, EdgeAccess edgeAccess, EdgeFilter filter) {
@@ -634,6 +697,27 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         public int getMergeStatus(int flags) {
             return PrepareEncoder.getScMergeStatus(getShortcutFlags(), flags);
         }
+
+        // ORS-GH MOD START: TD CALT
+        public void checkShortcutCore(String methodName) {
+            if (!isTypeCore)
+                throw new IllegalStateException("Method " + methodName + " only allowed for core graph");
+            checkShortcut(true, methodName);
+        }
+
+        @Override
+        public long getTime() {
+            checkShortcutCore("getTime");
+            return (long) shortcuts.getInt(edgePointer + S_TIME);
+        }
+
+        @Override
+        public CHEdgeIteratorState setTime(long time) {
+            checkShortcutCore("setTime");
+            shortcuts.setInt(edgePointer + S_TIME, (int) time);
+            return this;
+        }
+        // ORS-GH MOD END
     }
 
     class AllCHEdgesIteratorImpl extends AllEdgeIterator implements AllCHEdgesIterator {
@@ -785,6 +869,27 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
                 throw new IllegalStateException("Method " + method + " not supported when turn costs are disabled");
             }
         }
+
+        // ORS-GH MOD START: TD CALT
+        public void checkShortcutCore(String methodName) {
+            if (!isTypeCore)
+                throw new IllegalStateException("Method " + methodName + " only allowed for core graph");
+            checkShortcut(true, methodName);
+        }
+
+        @Override
+        public long getTime() {
+            checkShortcutCore("getTime");
+            return (long) shortcuts.getInt(edgePointer + S_TIME);
+        };
+
+        @Override
+        public CHEdgeIteratorState setTime(long time) {
+            checkShortcutCore("setTime");
+            shortcuts.setInt(edgePointer + S_TIME, (int) time);
+            return this;
+        }
+        // ORS-GH MOD END
     }
 
     private class CHEdgeAccess extends EdgeAccess {
@@ -899,5 +1004,14 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         public String toString() {
             return "ch edge access " + name;
         }
+
+        // ORS-GH MOD START: TD CALT
+        public void setTime(long edgePointer, long time) {
+            if (!isTypeCore) {
+                throw new IllegalStateException("Time can be added to shortcuts only for core graph");
+            }
+            shortcuts.setInt(edgePointer + S_TIME, (int) time);
+        }
+        // ORS-GH MOD END
     }
 }

@@ -18,6 +18,9 @@
 package com.graphhopper.storage;
 
 import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.routing.util.TraversalMode;
+import com.graphhopper.routing.weighting.TurnWeighting;
+import com.graphhopper.routing.weighting.Weighting;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +41,11 @@ public class GraphBuilder {
     private boolean elevation;
     private boolean turnCosts;
     private long byteCapacity = 100;
+    // ORS-GH MOD START
+    // CALT add member
+    // ORS TODO: maybe use profiles instead
+    private Weighting singleCoreWeighting;
+    // ORS-GH MOD END
     private List<CHProfile> chProfiles = Collections.emptyList();
 
     public GraphBuilder(EncodingManager encodingManager) {
@@ -54,6 +62,19 @@ public class GraphBuilder {
         this.chProfiles = chProfiles;
         return this;
     }
+
+    // ORS-GH MOD START
+    // CALT add method
+    // ORS TODO: maybe use profiles instead
+    /**
+     * This method enables creating a CoreGraph with the specified weighting.
+     */
+    public GraphBuilder setCoreGraph(Weighting singleCoreWeighting) {
+        this.singleCoreWeighting = singleCoreWeighting;
+        return this;
+    }
+
+    // ORS-GH MOD END
 
     public GraphBuilder setCHProfiles(CHProfile... chProfiles) {
         return setCHProfiles(Arrays.asList(chProfiles));
@@ -113,6 +134,12 @@ public class GraphBuilder {
         GraphExtension graphExtension = encodingManager.needsTurnCostsSupport() || turnCosts ?
                 new TurnCostExtension() :
                 new TurnCostExtension.NoOpExtension();
+
+// ORS-GH MOD START
+// CALT
+        if (singleCoreWeighting != null)
+            chProfiles.add(new CHProfile(singleCoreWeighting, TraversalMode.NODE_BASED, TurnWeighting.INFINITE_U_TURN_COSTS, CHProfile.TYPE_CORE));
+// ORS-GH MOD END
 
         return chProfiles.isEmpty() ?
                 new GraphHopperStorage(dir, encodingManager, elevation, graphExtension) :

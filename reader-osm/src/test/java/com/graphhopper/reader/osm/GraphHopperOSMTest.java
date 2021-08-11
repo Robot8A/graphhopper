@@ -918,7 +918,7 @@ public class GraphHopperOSMTest {
         // try all parallelization modes        
         for (int threadCount = 1; threadCount < 6; threadCount++) {
             EncodingManager em = EncodingManager.create(Arrays.asList(new CarFlagEncoder(), new MotorcycleFlagEncoder(),
-                    new MountainBikeFlagEncoder(), new RacingBikeFlagEncoder(), new FootFlagEncoder()), 8);
+                    new MountainBikeFlagEncoder(), new RacingBikeFlagEncoder(), new FootFlagEncoder()), 12);
 
             GraphHopper tmpGH = new GraphHopperOSM().
                     setStoreOnFlush(false).
@@ -959,7 +959,7 @@ public class GraphHopperOSMTest {
         // try all parallelization modes
         for (int threadCount = 1; threadCount < 6; threadCount++) {
             EncodingManager em = EncodingManager.create(Arrays.asList(new CarFlagEncoder(), new MotorcycleFlagEncoder(),
-                    new MountainBikeFlagEncoder(), new RacingBikeFlagEncoder(), new FootFlagEncoder()), 8);
+                    new MountainBikeFlagEncoder(), new RacingBikeFlagEncoder(), new FootFlagEncoder()), 12);
 
             GraphHopper tmpGH = new GraphHopperOSM().
                     setStoreOnFlush(false).

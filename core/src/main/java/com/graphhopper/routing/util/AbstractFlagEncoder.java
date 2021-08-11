@@ -17,11 +17,13 @@
  */
 package com.graphhopper.routing.util;
 
+import com.graphhopper.reader.ConditionalSpeedInspector;
 import com.graphhopper.reader.ConditionalTagInspector;
 import com.graphhopper.reader.ReaderNode;
 import com.graphhopper.reader.ReaderRelation;
 import com.graphhopper.reader.ReaderWay;
 import com.graphhopper.reader.osm.conditional.ConditionalOSMTagInspector;
+import com.graphhopper.reader.osm.conditional.ConditionalParser;
 import com.graphhopper.reader.osm.conditional.DateRangeParser;
 import com.graphhopper.routing.profiles.*;
 import com.graphhopper.routing.weighting.TurnWeighting;
@@ -42,6 +44,7 @@ import java.util.Set;
  *
  * @author Peter Karich
  * @author Nop
+ * @author Andrzej Oles
  * @see EncodingManager
  */
 public abstract class AbstractFlagEncoder implements FlagEncoder {
@@ -83,6 +86,7 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
     protected static final double LONG_TRIP_FERRY_SPEED = 30;
 
     private ConditionalTagInspector conditionalTagInspector;
+    private ConditionalSpeedInspector conditionalSpeedInspector;
 
     public AbstractFlagEncoder(PMap properties) {
         throw new RuntimeException("This method must be overridden in derived classes");
@@ -115,7 +119,11 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
     // should be called as last method in constructor, move out of the flag encoder somehow
     protected void init() {
         // we should move 'OSM to object' logic into the DataReader like OSMReader, but this is a major task as we need to convert OSM format into kind of a standard/generic format
-        conditionalTagInspector = new ConditionalOSMTagInspector(DateRangeParser.createCalendar(), restrictions, restrictedValues, intendedValues);
+        ConditionalOSMTagInspector conditionalTagInspector = new ConditionalOSMTagInspector(restrictions, restrictedValues, intendedValues);
+        conditionalTagInspector.addValueParser(new DateRangeParser());
+        //DateTime parser needs to go last = have highest priority in order to allow for storing unevaluated conditionals
+        conditionalTagInspector.addValueParser(ConditionalParser.createDateTimeParser());
+        this.conditionalTagInspector = conditionalTagInspector;
     }
 
     @Override
@@ -148,6 +156,14 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
 
     protected void setConditionalTagInspector(ConditionalTagInspector conditionalTagInspector) {
         this.conditionalTagInspector = conditionalTagInspector;
+    }
+
+    public ConditionalSpeedInspector getConditionalSpeedInspector() {
+        return conditionalSpeedInspector;
+    }
+
+    protected void setConditionalSpeedInspector(ConditionalSpeedInspector conditionalSpeedInspector) {
+        this.conditionalSpeedInspector = conditionalSpeedInspector;
     }
 
     /**
@@ -553,17 +569,21 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         speedEncoder.setDecimal(reverse, edgeFlags, speed);
     }
 
-    double getSpeed(IntsRef edgeFlags) {
+    // ORS GH MOD start
+    // ORS GH MOD switch from package-private to public for package-external flag encoders and some weightings
+    public double getSpeed(IntsRef edgeFlags) {
         return getSpeed(false, edgeFlags);
     }
 
-    double getSpeed(boolean reverse, IntsRef edgeFlags) {
+    // ORS GH MOD switch from package-private to public for package-external flag encoders and some weightings
+    public double getSpeed(boolean reverse, IntsRef edgeFlags) {
         double speedVal = speedEncoder.getDecimal(reverse, edgeFlags);
         if (speedVal < 0)
             throw new IllegalStateException("Speed was negative!? " + speedVal);
 
         return speedVal;
     }
+    // ORS GH MOD end
 
     /**
      * @param way   needed to retrieve tags
@@ -580,8 +600,22 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         return speed;
     }
 
+    protected double applyConditionalSpeed(String value, double speed) {
+        double maxSpeed = parseSpeed(value);
+        // We obey speed limits
+        if (maxSpeed >= 0) {
+            // We assume that the average speed is 90% of the allowed maximum
+            return maxSpeed * 0.9;
+        }
+        return speed;
+    }
+
     protected String getPropertiesString() {
         return "speed_factor=" + speedFactor + "|speed_bits=" + speedBits + "|turn_costs=" + (maxTurnCosts > 0);
+    }
+
+    protected long getEncoderBit() {
+        return this.encoderBit;
     }
 
     @Override
@@ -624,5 +658,27 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
     @Override
     public boolean hasEncodedValue(String key) {
         return encodedValueLookup.hasEncodedValue(key);
+    }
+
+    public EncodingManager.Access isRestrictedWayConditionallyPermitted(ReaderWay way) {
+        return isRestrictedWayConditionallyPermitted(way, EncodingManager.Access.WAY);
+    }
+
+    public EncodingManager.Access isRestrictedWayConditionallyPermitted(ReaderWay way, EncodingManager.Access accept) {
+        return getConditionalAccess(way, accept, true);
+    }
+
+    public EncodingManager.Access isPermittedWayConditionallyRestricted(ReaderWay way) {
+        return getConditionalAccess(way, EncodingManager.Access.WAY, false);
+    }
+
+    private EncodingManager.Access getConditionalAccess(ReaderWay way, EncodingManager.Access accept, boolean permissive) {
+        ConditionalTagInspector conditionalTagInspector = getConditionalTagInspector();
+        boolean access = permissive ? conditionalTagInspector.isRestrictedWayConditionallyPermitted(way) :
+                !conditionalTagInspector.isPermittedWayConditionallyRestricted(way);
+        if (conditionalTagInspector.hasLazyEvaluatedConditions())
+            return access ? EncodingManager.Access.PERMITTED : EncodingManager.Access.RESTRICTED;
+        else
+            return access ? accept : EncodingManager.Access.CAN_SKIP;
     }
 }

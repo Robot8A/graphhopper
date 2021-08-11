@@ -193,8 +193,14 @@ public class OSMInputFile implements Sink, OSMInput {
                         case 'n':
                             // note vs. node
                             if ("node".equals(name)) {
+                                // ORS-GH MOD START Modification by Maxim Rylov: Added additional check to cope with corrupted files.
+                                if (parser.getAttributeValue(null, "lat") != null) {
+                                // ORS-GH MOD END
                                 id = Long.parseLong(idStr);
                                 return OSMXMLHelper.createNode(id, parser);
+                                    // ORS-GH MOD START
+                                }
+                                // ORS-GH MOD END
                             }
                             break;
 
