@@ -62,6 +62,20 @@ public class PathMerger {
         this.weighting = weighting;
     }
 
+    // ORS-GH MOD START
+    protected PathProcessor[] pathProcessor = {PathProcessor.DEFAULT};
+
+    public PathMerger setPathProcessor(PathProcessor[] pathProcessor) {
+        this.pathProcessor = pathProcessor;
+        return this;
+    }
+
+    private int ppIndex = 0;
+    public void setPathProcessorIndex(int newIndex) {
+        ppIndex = newIndex;
+    }
+    // ORS MOD END
+
     public PathMerger setCalcPoints(boolean calcPoints) {
         this.calcPoints = calcPoints;
         return this;
@@ -111,6 +125,10 @@ public class PathMerger {
             fullWeight += path.getWeight();
             if (enableInstructions) {
                 InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr);
+                // ORS-GH MOD START TODO: that's where it went, adjust this
+                // InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr);
+                InstructionList il = path.calcInstructions(roundaboutEnc, tr, pathProcessor[ppIndex]);
+                // ORS-GH MOD END
 
                 if (!il.isEmpty()) {
                     fullInstructions.addAll(il);
@@ -143,6 +161,9 @@ public class PathMerger {
         }
 
         if (!fullPoints.isEmpty()) {
+            // ORS-GH MOD START
+            fullPoints = pathProcessor[ppIndex].processPoints(fullPoints);
+            // ORS-GH MOD END
             responsePath.addDebugInfo("simplify (" + origPoints + "->" + fullPoints.getSize() + ")");
             if (fullPoints.is3D)
                 calcAscendDescend(responsePath, fullPoints);

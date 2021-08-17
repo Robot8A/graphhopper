@@ -18,6 +18,7 @@
 package com.graphhopper.routing.weighting;
 
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.SpeedCalculator;
 import com.graphhopper.util.EdgeIteratorState;
 
 /**
@@ -37,6 +38,11 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     @Override
     public double getMinWeight(double distance) {
         return superWeighting.getMinWeight(distance);
+    }
+
+    @Override
+    public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId) {
+        return calcWeight(edge, reverse, prevOrNextEdgeId, -1);
     }
 
     @Override
@@ -64,6 +70,15 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
         return superWeighting.hasTurnCosts();
     }
 
+    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
+        return calcMillis(edgeState, reverse, prevOrNextEdgeId, -1);
+    }
+
+    @Override
+    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+        return superWeighting.calcMillis(edgeState, reverse, prevOrNextEdgeId, edgeEnterTime);
+    }
+
     /**
      * Returns the flagEncoder of the superWeighting. Usually we do not have a FlagEncoder here.
      */
@@ -75,5 +90,20 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     @Override
     public String toString() {
         return getName() + "|" + superWeighting.toString();
+    }
+
+    @Override
+    public boolean isTimeDependent() {
+        return superWeighting.isTimeDependent();
+    }
+
+    @Override
+    public SpeedCalculator getSpeedCalculator() {
+        return superWeighting.getSpeedCalculator();
+    }
+
+    @Override
+    public void setSpeedCalculator(SpeedCalculator speedCalculator) {
+        superWeighting.setSpeedCalculator(speedCalculator);
     }
 }

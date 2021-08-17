@@ -43,13 +43,26 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     private double distance;
     private IntsRef edgeFlags;
     private String name;
+    private String conditional;
     // true if edge should be avoided as start/stop
     private boolean unfavored;
     private EdgeIteratorState reverseEdge;
     private final boolean reverse;
 
-    public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int baseNode, int adjNode, double distance,
+    // ORS-GH MOD START
+    // store actual edge ID for use in TurnWeighting, fixes turn restrictions on virtual edges
+    private final int originalEdgeId;
+
+    public int getOriginalEdge() {
+        return originalEdgeId;
+    }
+
+    //public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int baseNode, int adjNode, double distance,
+    //                                IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+    public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int originalEdgeId, int baseNode, int adjNode, double distance,
                                     IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+        this.originalEdgeId = originalEdgeId;
+    // ORS-GH MOD END
         this.originalEdgeKey = originalEdgeKey;
         this.edgeKey = edgeKey;
         this.baseNode = baseNode;
@@ -272,29 +285,29 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
         property.setEnum(!reverse, edgeFlags, bwd);
         return this;
     }
-    
+
     @Override
     public String get(StringEncodedValue property) {
         return property.getString(reverse, edgeFlags);
     }
-    
+
     @Override
     public EdgeIteratorState set(StringEncodedValue property, String value) {
         property.setString(reverse, edgeFlags, value);
         return this;
     }
-    
+
     @Override
     public String getReverse(StringEncodedValue property) {
         return property.getString(!reverse, edgeFlags);
     }
-    
+
     @Override
     public EdgeIteratorState setReverse(StringEncodedValue property, String value) {
         property.setString(!reverse, edgeFlags, value);
         return this;
     }
-    
+
     @Override
     public EdgeIteratorState set(StringEncodedValue property, String fwd, String bwd) {
         if (!property.isStoreTwoDirections())
@@ -360,4 +373,14 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
         this.reverseEdge = reverseEdge;
     }
 
+    // ORS-GH MOD START: TD CALT
+    public CHEdgeIteratorState setTime(long time) {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
+    @Override
+    public long getTime() {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+    // ORS-GH MOD END
 }

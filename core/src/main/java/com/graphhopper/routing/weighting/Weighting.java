@@ -26,6 +26,7 @@ import com.graphhopper.util.EdgeIteratorState;
  * <p>
  *
  * @author Peter Karich
+ * @author Andrzej Oles
  */
 public interface Weighting {
     int INFINITE_U_TURN_COSTS = -1;
@@ -51,6 +52,8 @@ public interface Weighting {
      */
     double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
+    double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
+
     /**
      * This method calculates the time taken (in milli seconds) to travel along the specified edgeState.
      * It is typically used for post-processing and on only a few thousand edges.
@@ -67,6 +70,8 @@ public interface Weighting {
      * wrong results when turn costs are applied while running node-based.
      */
     boolean hasTurnCosts();
+
+    long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
 
     FlagEncoder getFlagEncoder();
 

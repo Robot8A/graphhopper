@@ -17,6 +17,7 @@
  */
 package com.graphhopper.reader.osm.conditional;
 
+import ch.poole.conditionalrestrictionparser.Condition;
 import com.graphhopper.util.Helper;
 
 import java.text.DateFormat;
@@ -123,6 +124,11 @@ public class DateRangeParser implements ConditionalValueParser {
             to = parseDateString(dateArr[0]);
 
         return new DateRange(from, to);
+    }
+
+    @Override
+    public ConditionState checkCondition(Condition condition) throws ParseException {
+        return checkCondition(condition.toString());
     }
 
     @Override

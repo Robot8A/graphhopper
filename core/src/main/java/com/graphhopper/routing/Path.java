@@ -19,16 +19,19 @@ package com.graphhopper.routing;
 
 import com.carrotsearch.hppc.IntArrayList;
 import com.carrotsearch.hppc.IntIndexedContainer;
+import com.graphhopper.coll.GHLongArrayList;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.NodeAccess;
-import com.graphhopper.util.EdgeIterator;
-import com.graphhopper.util.EdgeIteratorState;
-import com.graphhopper.util.FetchMode;
-import com.graphhopper.util.PointList;
+import com.graphhopper.util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+// ORS-GH MOD START - additional imports
+import com.graphhopper.routing.util.DefaultPathProcessor;
+import com.graphhopper.routing.util.PathProcessor;
+// ORS-GH MOD END
 
 /**
  * This class represents the result of a shortest path calculation. It also provides methods to extract further
@@ -38,6 +41,7 @@ import java.util.List;
  * @author Ottavio Campana
  * @author jan soe
  * @author easbar
+ * @author Andrzej Oles
  */
 public class Path {
     final Graph graph;
@@ -45,6 +49,7 @@ public class Path {
     private double weight = Double.MAX_VALUE;
     private double distance;
     private long time;
+    protected GHLongArrayList times;
     private IntArrayList edgeIds = new IntArrayList();
     private int fromNode = -1;
     private int endNode = -1;
@@ -92,7 +97,12 @@ public class Path {
         return endNode;
     }
 
-    public Path setEndNode(int end) {
+    protected void addTime(long duration) {
+        times.add(duration);
+        time += duration;
+    }
+
+    protected Path setEndNode(int end) {
         endNode = end;
         return this;
     }
@@ -296,6 +306,31 @@ public class Path {
         });
         return points;
     }
+
+    // TODO: where did this go?
+//    /**
+//     * @return the list of instructions for this path.
+//     */
+//    public InstructionList calcInstructions(BooleanEncodedValue roundaboutEnc, final Translation tr) {
+//        // ORS-GH MOD START
+//        return calcInstructions(roundaboutEnc, tr, PathProcessor.DEFAULT);
+//    }
+//    public InstructionList calcInstructions(BooleanEncodedValue roundaboutEnc, final Translation tr, PathProcessor pathProcessor) {
+//        // ORS-GH MOD END
+//        final InstructionList ways = new InstructionList(edgeIds.size() / 4, tr);
+//        if (edgeIds.isEmpty()) {
+//            if (isFound()) {
+//                ways.add(new FinishInstruction(nodeAccess, endNode));
+//            }
+//            return ways;
+//        }
+//        // ORS-GH MOD START
+////        forEveryEdge(new InstructionsFromEdges(getFromNode(), graph, weighting, encoder, roundaboutEnc, nodeAccess, tr, ways));
+//        forEveryEdge(new InstructionsFromEdges(getFromNode(), graph, weighting, encoder, roundaboutEnc, nodeAccess, tr, ways, pathProcessor, times));
+//        // ORS-GH MOD END
+//        return ways;
+//    }
+
 
     @Override
     public String toString() {

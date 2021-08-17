@@ -20,6 +20,8 @@ package com.graphhopper.routing;
 import com.carrotsearch.hppc.IntObjectMap;
 import com.graphhopper.coll.GHIntObjectHashMap;
 import com.graphhopper.routing.util.TraversalMode;
+import com.graphhopper.routing.weighting.TurnWeighting;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 
 import java.util.Collections;
@@ -51,6 +53,12 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
     int visitedCountFrom;
     int visitedCountTo;
     private boolean alreadyRun;
+    // ORS-GH MOD START
+    // Modification by Andrzej Oles: ALT patch https://github.com/GIScience/graphhopper/issues/21
+    protected double approximatorOffset = 0.0;
+    // ORS-GH MOD END
+
+
 
     public AbstractBidirAlgo(TraversalMode traversalMode) {
         this.traversalMode = traversalMode;
@@ -163,7 +171,11 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
         if (finishedFrom || finishedTo)
             return true;
 
-        return currFrom.weight + currTo.weight >= bestWeight;
+        // ORS-GH MOD START
+        // Modification by Andrzej Oles: ALT patch https://github.com/GIScience/graphhopper/issues/21
+        //return currFrom.weight + currTo.weight >= bestWeight;
+        return currFrom.weight + currTo.weight - approximatorOffset >= bestWeight;
+        // ORS-GH MOD END
     }
 
     abstract boolean fillEdgesFrom();
@@ -199,7 +211,48 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
     protected abstract int getOtherNode(int edge, int node);
 
     protected int getIncomingEdge(SPTEntry entry) {
+        // ORS-GH MOD START
+        // use actual edge ID instead of virtual edge ID (passed to TurnWeighting as prevOrNextEdgeId
+
+        // TODO: The modification to fillEdges needs to go wherever this code went
+//        private void fillEdges(SPTEntry currEdge, PriorityQueue<SPTEntry> prioQueue,
+//                IntObjectMap<SPTEntry> bestWeightMap, EdgeExplorer explorer, boolean reverse) {
+//            EdgeIterator iter = explorer.setBaseNode(currEdge.adjNode);
+//            while (iter.next()) {
+//                if (!accept(iter, currEdge, reverse))
+//                    continue;
+//
+//                final double weight = calcWeight(iter, currEdge, reverse);
+//                if (Double.isInfinite(weight)) {
+//                    continue;
+//                }
+//                final int origEdgeId = getOrigEdgeId(iter, reverse);
+//                final int traversalId = getTraversalId(iter, origEdgeId, reverse);
+//                SPTEntry entry = bestWeightMap.get(traversalId);
+//                if (entry == null) {
+//                    entry = createEntry(iter, origEdgeId, weight, currEdge, reverse);
+//                    // ORS-GH MOD START
+//                    // store actual edge ID for use by getIncomingEdge
+//                    entry.originalEdge = EdgeIteratorStateHelper.getOriginalEdge(iter);
+//                    // ORS-GH MOD END
+//                    bestWeightMap.put(traversalId, entry);
+//                    prioQueue.add(entry);
+//                } else if (entry.getWeightOfVisitedPath() > weight) {
+//                    prioQueue.remove(entry);
+//                    updateEntry(entry, iter, origEdgeId, weight, currEdge, reverse);
+//                    prioQueue.add(entry);
+//                } else
+//                    continue;
+//
+//                if (updateBestPath)
+//                    updateBestPath(iter, entry, traversalId, reverse);
+//            }
+//        }
+        //  only then will the following two lines work
+        // if (weighting instanceof TurnWeighting && ((TurnWeighting) weighting).inORS)
+        //     return entry.originalEdge;
         return entry.edge;
+        // ORS-GH MOD END
     }
 
     abstract protected Path extractPath();

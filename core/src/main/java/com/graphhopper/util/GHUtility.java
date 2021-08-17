@@ -1011,6 +1011,17 @@ public class GHUtility {
         public double getEle(int nodeId) {
             throw new UnsupportedOperationException("Not supported.");
         }
+
+        // ORS-GH MOD START: TD CALT
+        public CHEdgeIteratorState setTime(long time) {
+            throw new UnsupportedOperationException("Not supported. Edge is empty.");
+        }
+
+        @Override
+        public long getTime() {
+            throw new UnsupportedOperationException("Not supported. Edge is empty.");
+        }
+        // ORS-GH MOD END
     }
 
     public static BBox createBBox(EdgeIteratorState edgeState) {

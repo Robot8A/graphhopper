@@ -33,6 +33,7 @@ public abstract class AbstractWeighting implements Weighting {
     protected final DecimalEncodedValue avSpeedEnc;
     protected final BooleanEncodedValue accessEnc;
     private final TurnCostProvider turnCostProvider;
+    protected SpeedCalculator speedCalculator;
 
     protected AbstractWeighting(FlagEncoder encoder) {
         this(encoder, NO_TURN_COST_PROVIDER);
@@ -48,7 +49,19 @@ public abstract class AbstractWeighting implements Weighting {
         avSpeedEnc = encoder.getAverageSpeedEnc();
         accessEnc = encoder.getAccessEnc();
         this.turnCostProvider = turnCostProvider;
+        speedCalculator = new DefaultSpeedCalculator(encoder);
     }
+
+    // TODO: probably not needed any more?
+    @Override
+    public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+        return calcWeight(edge, reverse, prevOrNextEdgeId);
+    }
+
+    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
+        return calcMillis(edgeState, reverse, prevOrNextEdgeId, -1);
+    }
+    // END TODO
 
     /**
      * In most cases subclasses should only override this method to change the edge-weight. The turn cost handling
@@ -57,7 +70,7 @@ public abstract class AbstractWeighting implements Weighting {
     public abstract double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
     @Override
-    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
+    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
         // special case for loop edges: since they do not have a meaningful direction we always need to read them in
         // forward direction
         if (edgeState.getBaseNode() == edgeState.getAdjNode()) {
@@ -70,7 +83,7 @@ public abstract class AbstractWeighting implements Weighting {
                     + edgeState.fetchWayGeometry(FetchMode.ALL) + ", dist: " + edgeState.getDistance() + " "
                     + "Reverse:" + reverse + ", fwd:" + edgeState.get(accessEnc) + ", bwd:" + edgeState.getReverse(accessEnc) + ", fwd-speed: " + edgeState.get(avSpeedEnc) + ", bwd-speed: " + edgeState.getReverse(avSpeedEnc));
 
-        double speed = reverse ? edgeState.getReverse(avSpeedEnc) : edgeState.get(avSpeedEnc);
+        double speed = speedCalculator.getSpeed(edgeState, reverse, edgeEnterTime);
         if (Double.isInfinite(speed) || Double.isNaN(speed) || speed < 0)
             throw new IllegalStateException("Invalid speed stored in edge! " + speed);
         if (speed == 0)
@@ -126,5 +139,20 @@ public abstract class AbstractWeighting implements Weighting {
     @Override
     public String toString() {
         return getName() + "|" + flagEncoder;
+    }
+
+    @Override
+    public boolean isTimeDependent() {
+        return false;
+    }
+
+    @Override
+    public SpeedCalculator getSpeedCalculator() {
+        return speedCalculator;
+    }
+
+    @Override
+    public void setSpeedCalculator(SpeedCalculator speedCalculator) {
+        this.speedCalculator = speedCalculator;
     }
 }

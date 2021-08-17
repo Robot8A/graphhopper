@@ -157,7 +157,9 @@ public class EdgeElevationInterpolator {
                 }
                 if (count > 2)
                     edge.setWayGeometry(pointList.shallowCopy(1, count - 1, false));
-                edge.setDistance(DistanceCalcEarth.DIST_EARTH.calcDistance(pointList));
+                // ORS-GH MOD START
+                // edge.setDistance(DistanceCalcEarth.DIST_EARTH.calcDistance(pointList));
+                // ORS-GH MOD END
             }
         }
     }

@@ -20,6 +20,7 @@ package com.graphhopper.routing;
 import com.graphhopper.routing.ev.*;
 import com.graphhopper.routing.util.AccessFilter;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.PathProcessor;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.NodeAccess;
@@ -28,12 +29,17 @@ import com.graphhopper.util.shapes.GHPoint;
 
 import static com.graphhopper.routing.util.EncodingManager.getKey;
 
+// ORS-GH MOD START - additional imports
+import com.graphhopper.routing.util.PathProcessor;
+// ORS-GH MOD END
+
 /**
  * This class calculates instructions from the edges in a Path.
  *
  * @author Peter Karich
  * @author Robin Boldt
  * @author jan soe
+ * @author Andrzej Oles
  */
 public class InstructionsFromEdges implements Path.EdgeVisitor {
 
@@ -83,9 +89,32 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
     private String prevInstructionName;
 
     private static final int MAX_U_TURN_DISTANCE = 35;
+    protected GHLongArrayList times;
+    // ORS-GH MOD START
+    private PathProcessor mPathProcessor = PathProcessor.DEFAULT;
+
+    // TODO: do we still need this?
+//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
+//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
+//                                 Translation tr, InstructionList ways, PathProcessor pathProcessor) {
+//        this(tmpNode,  graph,  weighting,  encoder,
+//                roundaboutEnc,  nodeAccess,
+//                tr,  ways, pathProcessor, null);
+//    }
+
+    // TODO: this was the signature change before
+//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
+//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
+//                                 Translation tr, InstructionList ways, GHLongArrayList times) {
+//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
+//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
+//                                 Translation tr, InstructionList ways, PathProcessor pathProcessor, GHLongArrayList times) {
 
     public InstructionsFromEdges(Graph graph, Weighting weighting, EncodedValueLookup evLookup,
                                  InstructionList ways) {
+        // TODO: sig change required to allow following line
+//        mPathProcessor = pathProcessor;
+        // ORS-GH MOD END
         this.encoder = weighting.getFlagEncoder();
         this.weighting = weighting;
         this.accessEnc = evLookup.getBooleanEncodedValue(getKey(encoder.toString(), "access"));
@@ -100,6 +129,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
         prevName = null;
         outEdgeExplorer = graph.createEdgeExplorer(AccessFilter.outEdges(encoder.getAccessEnc()));
         crossingExplorer = graph.createEdgeExplorer(AccessFilter.allEdges(encoder.getAccessEnc()));
+        this.times = times;
     }
 
     /**
@@ -288,7 +318,8 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
             prevName = name;
         }
 
-        updatePointsAndInstruction(edge, wayGeo);
+        long time = times.get(index);
+        updatePointsAndInstruction(edge, wayGeo, time);
 
         if (wayGeo.getSize() <= 2) {
             doublePrevLat = prevLat;
@@ -304,6 +335,10 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
         prevLat = adjLat;
         prevLon = adjLon;
         prevEdge = edge;
+
+        // ORS-GH MOD START
+        mPathProcessor.processPathEdge(edge, wayGeo);
+        // ORS-GH MOD END
     }
 
     @Override
@@ -433,7 +468,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
         return Instruction.IGNORE;
     }
 
-    private void updatePointsAndInstruction(EdgeIteratorState edge, PointList pl) {
+    private void updatePointsAndInstruction(EdgeIteratorState edge, PointList pl, long time) {
         // skip adjNode
         int len = pl.size() - 1;
         for (int i = 0; i < len; i++) {

@@ -104,14 +104,14 @@ public class FastestWeighting extends AbstractWeighting {
     }
 
     @Override
-    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
+    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
         // TODO move this to AbstractWeighting? see #485
         long time = 0;
         boolean unfavoredEdge = edgeState.get(EdgeIteratorState.UNFAVORED_EDGE);
         if (unfavoredEdge)
             time += headingPenaltyMillis;
 
-        return time + super.calcEdgeMillis(edgeState, reverse);
+        return time + super.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
     }
 
     static double checkBounds(String key, double val, double from, double to) {
@@ -119,6 +119,11 @@ public class FastestWeighting extends AbstractWeighting {
             throw new IllegalArgumentException(key + " has invalid range should be within [" + from + ", " + to + "]");
 
         return val;
+    }
+
+    @Override
+    public boolean isTimeDependent() {
+        return speedCalculator.isTimeDependent();
     }
 
     @Override

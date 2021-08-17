@@ -54,6 +54,18 @@
             <artifactId>jts-core</artifactId>
             <version>1.15.1</version>
         </dependency>
+<!-- TODO: need to check if these two are needed -->
+        <dependency>
+            <groupId>ch.poole</groupId>
+            <artifactId>ConditionalRestrictionParser</artifactId>
+            <version>${crparser.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.poole</groupId>
+            <artifactId>OpeningHoursParser</artifactId>
+            <version>${ohparser.version}</version>
+        </dependency>
+
         <!-- for using CGIAR: elevation data importing via tif files-->
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
@@ -91,6 +103,18 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>graphhopper-api</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>us.dustinj.timezonemap</groupId>
+            <artifactId>timezonemap</artifactId>
+            <version>3.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -134,6 +158,14 @@
                     <dotGitDirectory>${parent.basedir}/.git</dotGitDirectory>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>
