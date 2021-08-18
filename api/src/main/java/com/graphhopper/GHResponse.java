@@ -35,7 +35,7 @@ public class GHResponse {
     private String debugInfo = "";
 
     // ORS-GH MOD START
-    // ORS TODO: why is this change needed?
+    // TODO ORS: why is this change needed?
     private final List<Object> objects = new ArrayList<>(1);
 
     public GHResponse addReturnObject(Object obj) {

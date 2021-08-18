@@ -1,14 +1,13 @@
+// ORS-GH MOD START - new class
+// TODO ORS: Why do we need this? How does GH deal with it?
 package com.graphhopper.routing.weighting;
 
 import com.graphhopper.routing.util.FlagEncoder;
-import com.graphhopper.routing.util.HintsMap;
-import com.graphhopper.routing.util.TraversalMode;
-import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.GraphHopperStorage;
-import com.graphhopper.storage.index.LocationIndex;
+import com.graphhopper.util.PMap;
 
-// ORS-GH MOD - Modification by Maxim Rylov: Added a new class.
 public interface WeightingFactory {
 	
-	public Weighting createWeighting(HintsMap hintsMap, FlagEncoder encoder, GraphHopperStorage graphStorage);
+	public Weighting createWeighting(PMap hintsMap, FlagEncoder encoder, GraphHopperStorage graphStorage);
 }
+// ORS_GH MOD END

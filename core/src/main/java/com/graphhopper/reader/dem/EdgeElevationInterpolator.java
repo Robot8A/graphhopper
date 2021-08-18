@@ -158,6 +158,7 @@ public class EdgeElevationInterpolator {
                 if (count > 2)
                     edge.setWayGeometry(pointList.shallowCopy(1, count - 1, false));
                 // ORS-GH MOD START
+                // TODO ORS: why is this modification necessary?
                 // edge.setDistance(DistanceCalcEarth.DIST_EARTH.calcDistance(pointList));
                 // ORS-GH MOD END
             }

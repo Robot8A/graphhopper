@@ -449,6 +449,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
         onProcessWay(way);
         // ORS-GH MOD END
         // ORS-GH MOD START - apply individual processing to each edge
+        // TODO ORS: where is the END?
         for (EdgeIteratorState edge : createdEdges) {
             onProcessEdge(way, edge);
         }

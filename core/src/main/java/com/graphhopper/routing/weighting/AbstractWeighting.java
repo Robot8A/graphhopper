@@ -19,7 +19,9 @@ package com.graphhopper.routing.weighting;
 
 import com.graphhopper.routing.ev.BooleanEncodedValue;
 import com.graphhopper.routing.ev.DecimalEncodedValue;
+import com.graphhopper.routing.util.DefaultSpeedCalculator;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.SpeedCalculator;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.FetchMode;
 
@@ -33,7 +35,9 @@ public abstract class AbstractWeighting implements Weighting {
     protected final DecimalEncodedValue avSpeedEnc;
     protected final BooleanEncodedValue accessEnc;
     private final TurnCostProvider turnCostProvider;
+    // ORS-GH MOD START - new field
     protected SpeedCalculator speedCalculator;
+    // ORS-GH MOD END
 
     protected AbstractWeighting(FlagEncoder encoder) {
         this(encoder, NO_TURN_COST_PROVIDER);
@@ -49,10 +53,12 @@ public abstract class AbstractWeighting implements Weighting {
         avSpeedEnc = encoder.getAverageSpeedEnc();
         accessEnc = encoder.getAccessEnc();
         this.turnCostProvider = turnCostProvider;
+        // ORS-GH MOD START
         speedCalculator = new DefaultSpeedCalculator(encoder);
+        // ORS_GH MOD END
     }
 
-    // TODO: probably not needed any more?
+    // TODO ORS: probably not needed any more?
     @Override
     public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
         return calcWeight(edge, reverse, prevOrNextEdgeId);
@@ -61,7 +67,7 @@ public abstract class AbstractWeighting implements Weighting {
     public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
         return calcMillis(edgeState, reverse, prevOrNextEdgeId, -1);
     }
-    // END TODO
+    // END TODO ORS
 
     /**
      * In most cases subclasses should only override this method to change the edge-weight. The turn cost handling
@@ -141,6 +147,7 @@ public abstract class AbstractWeighting implements Weighting {
         return getName() + "|" + flagEncoder;
     }
 
+    // ORS-GH MOD START
     @Override
     public boolean isTimeDependent() {
         return false;

@@ -80,12 +80,6 @@ public class GraphHopper implements GraphHopperAPI {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Map<String, Profile> profilesByName = new LinkedHashMap<>();
     private final String fileLockName = "gh.lock";
-    // TODO: algoDecorators has been removed, how does this work now?
-    // ORS-GH MOD START
-    // CALT - change access level
-//    private final Set<RoutingAlgorithmFactoryDecorator> algoDecorators = new LinkedHashSet<>();
-    protected final Set<RoutingAlgorithmFactoryDecorator> algoDecorators = new LinkedHashSet<>();
-    // ORS-GH MOD END
     // utils
     private final TranslationMap trMap = new TranslationMap().doImport();
     boolean removeZipped = true;
@@ -117,6 +111,10 @@ public class GraphHopper implements GraphHopperAPI {
     // preparation handlers
     private final LMPreparationHandler lmPreparationHandler = new LMPreparationHandler();
     private final CHPreparationHandler chPreparationHandler = new CHPreparationHandler();
+    // ORS-GH MOD START
+    // TODO ORS: need a preparation handler for CALT as a replacement of the
+    // TODO ORS: RoutingAlgorithmFactoryDecorators
+    // ORS-GH MOD END
 
     // for data reader
     private String osmFile;
@@ -192,11 +190,14 @@ public class GraphHopper implements GraphHopperAPI {
 
     // ORS-GH MOD START
     // CALT
+    @Deprecated // use RouterConfig instead
     public int getMaxRoundTripRetries() {
-        return maxRoundTripRetries;
+        return getRouterConfig().getMaxRoundTripRetries();
     }
+
+    @Deprecated // use RouterConfig instead
     public boolean isCalcPoints() {
-        return calcPoints;
+        return getRouterConfig().isCalcPoints();
     }
     // ORS-GH MOD END
 
@@ -330,8 +331,9 @@ public class GraphHopper implements GraphHopperAPI {
 
     // ORS-GH MOD START
     // CALT
+    @Deprecated
     public boolean isSimplifyResponse() {
-        return simplifyResponse;
+        return getRouterConfig().isSimplifyResponse();
     }
 
     public boolean isFullyLoaded() {
@@ -355,15 +357,14 @@ public class GraphHopper implements GraphHopperAPI {
         return this;
     }
 
-    // TODO: check if this is still needed, method has been removed
 //    //ORS-GH MOD START
-//    // ORS TODO: provide reason for this change
-//    //private GraphHopper setSimplifyResponse(boolean doSimplify) {
-//    public GraphHopper setSimplifyResponse(boolean doSimplify) {
-//    //ORS-GH MOD END
-//        this.simplifyResponse = doSimplify;
-//        return this;
-//    }
+//    // TODO ORS: provide reason for this change
+    @Deprecated // use RouterConfig instead
+    public GraphHopper setSimplifyResponse(boolean doSimplify) {
+        this.getRouterConfig().setSimplifyResponse(doSimplify);
+        return this;
+    }
+//ORS-GH MOD END
 
     public String getGraphHopperLocation() {
         return ghLocation;
@@ -442,11 +443,14 @@ public class GraphHopper implements GraphHopperAPI {
 
     // ORS-GH MOD START
     // CALT
-    public ReadWriteLock getReadWriteLock() {
-        return readWriteLock;
-    }
-
+    // TODO ORS: Why does CALT need access to such a low-level detail?
+    // TODO ORS: The lock does not exist anymore, maybe go through LockFacktory
+    // TODO ORS: if this is necessary at all.
+    //public ReadWriteLock getReadWriteLock() {
+    //    return readWriteLock;
+    //}
     // ORS-GH MOD END
+
     public boolean isAllowWrites() {
         return allowWrites;
     }
@@ -985,8 +989,11 @@ public class GraphHopper implements GraphHopperAPI {
             interpolateBridgesTunnelsAndFerries();
         }
 
-        BBox bb = ghStorage.getBounds();
-        ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
+        // ORS-GH MOD START
+        // TODO ORS: Bbox does not exist
+        // BBox bb = ghStorage.getBounds();
+        // ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
+        // ORS-GH MOD END
 
         initLocationIndex();
 

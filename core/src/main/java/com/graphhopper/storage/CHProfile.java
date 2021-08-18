@@ -1,3 +1,5 @@
+// TODO ORS: this class has been moved to config/CHProfile. Shouldn't we add
+// TODO ORS: a CaltProfile there?
 package com.graphhopper.storage;
 
 import com.graphhopper.routing.util.TraversalMode;

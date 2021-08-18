@@ -1,3 +1,5 @@
+// TODO ORS: This class has been removed from GH, however some files
+// TODO ORS: still include it. Did there something go wrong when merging?
 /*
  *  Licensed to GraphHopper GmbH under one or more contributor
  *  license agreements. See the NOTICE file distributed with this work for

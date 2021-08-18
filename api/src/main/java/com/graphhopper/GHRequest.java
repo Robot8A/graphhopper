@@ -287,9 +287,7 @@ public class GHRequest {
         return res;
     }
 
-    // ****************************************************************
     // ORS-GH MOD START
-    // ****************************************************************
     private PMap additionalHints;
     public void  setAdditionalHints (PMap hints) {
         this.additionalHints = hints;
@@ -307,7 +305,5 @@ public class GHRequest {
     public void setMaxSearchDistance(double[] distances) {
         maxSearchDistances = distances;
     }
-    // ****************************************************************
     // ORS-GH MOD END
-    // ****************************************************************
 }

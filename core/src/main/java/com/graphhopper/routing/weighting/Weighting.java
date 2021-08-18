@@ -52,13 +52,17 @@ public interface Weighting {
      */
     double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
+    // ORS-GH MOD START
     double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
+    // ORS-GH MOD END
 
     /**
      * This method calculates the time taken (in milli seconds) to travel along the specified edgeState.
      * It is typically used for post-processing and on only a few thousand edges.
      */
+    // ORS-GH MOD START
     long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse);
+    // ORS-GH MOD END
 
     double calcTurnWeight(int inEdge, int viaNode, int outEdge);
 
@@ -71,7 +75,9 @@ public interface Weighting {
      */
     boolean hasTurnCosts();
 
+    // ORS-GH MOD START
     long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
+    // ORS-GH MOD END
 
     FlagEncoder getFlagEncoder();
 

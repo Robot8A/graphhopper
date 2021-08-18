@@ -77,6 +77,7 @@ public abstract class ReaderElement {
     }
 
     // ORS-GH MOD START
+    // TODO ORS: why is this modification necessary?
     //protected Map<String, Object> getTags()
     public Map<String, Object> getTags() {
     // ORS-GH MOD END
