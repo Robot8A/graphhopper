@@ -26,6 +26,7 @@ import com.graphhopper.routing.ev.IntEncodedValue;
 import com.graphhopper.routing.ev.StringEncodedValue;
 import com.graphhopper.routing.util.AllCHEdgesIterator;
 import com.graphhopper.routing.util.EdgeFilter;
+import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.BaseGraph.AllEdgeIterator;
 import com.graphhopper.storage.BaseGraph.EdgeIteratorImpl;
 import com.graphhopper.util.*;
@@ -81,20 +82,19 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         this.chConfig = chConfig;
         this.baseGraph = baseGraph;
         final String name = chConfig.getName();
-        this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        // ORS-GH MOD START
+        // CALT include type in directory location
+        // this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        // this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        // TODO ORS: use polymorphism instead of this mix of string & boolean flags
+        this.nodesCH = dir.find("nodes_" + chConfig.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        this.shortcuts = dir.find("shortcuts_" + chConfig.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
+        this.isTypeCore = chConfig.getType().equals(CHProfile.TYPE_CORE);
+        // ORS-GH MOD END
         if (segmentSize >= 0) {
             nodesCH.setSegmentSize(segmentSize);
             shortcuts.setSegmentSize(segmentSize);
         }
-        // ORS-GH MOD START
-        // CALT include type in directory location
-        //this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        //this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        this.nodesCH = dir.find("nodes_" + chProfile.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        this.shortcuts = dir.find("shortcuts_" + chProfile.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        this.isTypeCore = chProfile.getType()==CHProfile.TYPE_CORE;
-        // ORS-GH MOD END
     }
 
     @Override
@@ -442,8 +442,12 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
 
     // ORS-GH MOD START
     // CALT add method
+    // TODO ORS: need a different way to create the name, ideally without the
+    // TODO ORS: use of weightings
     public CHGraphImpl setShortcutsStorage(Weighting w, Directory dir, String suffix, boolean edgeBased){
-        final String name = AbstractWeighting.weightingToFileName(w);
+        // ORS ORIGINAL: final String name = AbstractWeighting.weightingToFileName(w);
+        // ORS temporal fix:
+        final String name = w.getName(); // TODO ORS: can we use chConfig.getName()?
         this.shortcuts = dir.find("shortcuts_" + suffix + name);
         return this;
     }
@@ -696,7 +700,9 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
             throw new IllegalStateException("Time can be added to shortcuts only for core graph");
         }
         int scId = shortcut(a, b, accessFlags, weight, skippedEdge1, skippedEdge2);
-        chEdgeAccess.setTime(chEdgeAccess.toPointer(scId), time);
+        // TODO ORS: edgeAccess has been removed, how to do this now?
+        // TODO ORS: Maybe use CHEdgeIteratorStateImpl.setTime?
+        // ORS ORIGINAL: chEdgeAccess.setTime(chEdgeAccess.toPointer(scId), time);
         return scId;
     }
     // ORS-GH MOD END

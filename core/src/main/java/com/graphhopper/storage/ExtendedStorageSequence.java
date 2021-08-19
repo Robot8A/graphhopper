@@ -1,3 +1,4 @@
+// TODO ORS: Is this needed at all? If yes, re-implement without GraphExtension
 package com.graphhopper.storage;
 
 import java.util.ArrayList;

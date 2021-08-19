@@ -77,7 +77,10 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final NodeAccess nodeAccess;
     private final LongIndexedContainer barrierNodeIds = new LongArrayList();
     private final DistanceCalc distCalc = DistanceCalcEarth.DIST_EARTH;
-    private final DistanceCalc3D distCalc3D = Helper.DIST_3D; // TODO: where did this go?
+    // ORS-GH MOD START - new field
+    // TODO ORS: why is this modification needed?
+    private final DistanceCalc3D distCalc3D = new DistanceCalc3D();
+    // ORS-GH MOD END
     private final DouglasPeucker simplifyAlgo = new DouglasPeucker();
     private boolean smoothElevation = false;
     private double longEdgeSamplingDistance = 0;
@@ -113,6 +116,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final TurnCostStorage tcs;
 
     // ORS-GH MOD - Add variable for overriding of 3d calculations
+    // TODO ORS: why is this modification needed?
     private boolean calcDistance3D = true;
 
     // ORS-GH MOD - Add variable for identifying which tags from nodes should be stored on their containing ways

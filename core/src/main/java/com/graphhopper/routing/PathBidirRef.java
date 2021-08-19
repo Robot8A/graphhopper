@@ -1,3 +1,4 @@
+// TODO ORS: this class has been removed from GH, parts are found in DefaultBidirPathExtractor
 /*
  *  Licensed to GraphHopper GmbH under one or more contributor
  *  license agreements. See the NOTICE file distributed with this work for

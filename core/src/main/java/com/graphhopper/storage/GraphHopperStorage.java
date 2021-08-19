@@ -51,6 +51,7 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
     private final StorableProperties properties;
     private final BaseGraph baseGraph;
 
+    // ORS-GH MOD START
     private ConditionalEdges conditionalAccess;
     private ConditionalEdges conditionalSpeed;
 
@@ -80,6 +81,7 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
     public void setTimeZoneMap(TimeZoneMap timeZoneMap) {
         this.timeZoneMap = timeZoneMap;
     }
+    // ORS-GH MOD END
 
     // same flush order etc
     private final Collection<CHGraphImpl> chGraphs;
