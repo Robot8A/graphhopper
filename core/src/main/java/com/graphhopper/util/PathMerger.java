@@ -63,6 +63,7 @@ public class PathMerger {
     }
 
     // ORS-GH MOD START
+    // TODO ORS: provide reason for this addition
     protected PathProcessor[] pathProcessor = {PathProcessor.DEFAULT};
 
     public PathMerger setPathProcessor(PathProcessor[] pathProcessor) {

@@ -445,6 +445,8 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         return restrictions;
     }
 
+    // ORS-GH MOD START
+    // TODO ORS: provide reason for this change
     public EncodingManager.Access isRestrictedWayConditionallyPermitted(ReaderWay way) {
         return isRestrictedWayConditionallyPermitted(way, EncodingManager.Access.WAY);
     }
@@ -466,4 +468,5 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         else
             return access ? accept : EncodingManager.Access.CAN_SKIP;
     }
+    // ORS-GH MOD END
 }

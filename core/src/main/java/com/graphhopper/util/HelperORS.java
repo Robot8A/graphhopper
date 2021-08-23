@@ -6,6 +6,7 @@ import com.graphhopper.storage.GraphExtension;
 import com.graphhopper.storage.TurnCostExtension;
 
 // ORS-GH MOD - Modification by Maxim Rylov: Added a new class.
+@Deprecated // This class does not fit into GH's new design
 public class HelperORS {
 
     // Modification by Maxim Rylov: Added getTurnCostExtensions method to extract TurnCostExtension

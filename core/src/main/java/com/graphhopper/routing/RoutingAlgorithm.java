@@ -37,12 +37,15 @@ public interface RoutingAlgorithm {
      */
     Path calcPath(int from, int to);
 
+    // ORS-GH MOD START: new method
+    // TODO ORS: provide reason for this change
     /**
      * Calculates the best path between the specified nodes at a given time.
      *
      * @return the path. Call the method found() to make sure that the path is valid.
      */
     Path calcPath(int from, int to, long at);
+    // ORS-GH-MOD END
 
     /**
      * Calculates multiple possibilities for a path.
@@ -51,7 +54,10 @@ public interface RoutingAlgorithm {
      */
     List<Path> calcPaths(int from, int to);
 
+    // ORS-GH MOD START: new method
+    // TODO ORS: provide reason for this change
     List<Path> calcPaths(int from, int to, long at);
+    // ORS-GH-MOD END
 
     /**
      * Limit the search to numberOfNodes. See #681
@@ -68,5 +74,8 @@ public interface RoutingAlgorithm {
      */
     int getVisitedNodes();
     
+    // ORS-GH MOD START: new method
+    // TODO ORS: provide reason for this change
     RoutingAlgorithm setEdgeFilter(EdgeFilter additionalEdgeFilter);
+    // ORS-GH-MOD END
 }

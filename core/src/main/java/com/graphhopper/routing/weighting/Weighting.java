@@ -76,6 +76,7 @@ public interface Weighting {
     boolean hasTurnCosts();
 
     // ORS-GH MOD START
+    // TODO ORS: can we avoid adding an abstract method? All implementors are affected by sch a change
     long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
     // ORS-GH MOD END
 

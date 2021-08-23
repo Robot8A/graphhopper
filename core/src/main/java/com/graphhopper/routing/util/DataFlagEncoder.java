@@ -40,6 +40,7 @@ import java.util.*;
  *
  * @author Peter Karich
  */
+@Deprecated // Removed from GH
 public class DataFlagEncoder extends AbstractFlagEncoder {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataFlagEncoder.class);

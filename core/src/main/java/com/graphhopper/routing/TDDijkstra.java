@@ -36,6 +36,7 @@ import com.graphhopper.util.Parameters;
  */
 public class TDDijkstra extends Dijkstra {
 
+    // TODO ORS: Should there be a TdWeighting instead of querying isTimeDependent?
     public TDDijkstra(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
 

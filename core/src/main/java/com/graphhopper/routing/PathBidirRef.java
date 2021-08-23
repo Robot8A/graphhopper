@@ -31,6 +31,7 @@ import com.graphhopper.util.EdgeIteratorState;
  *
  * @author Peter Karich
  */
+@Deprecated // Class has been removed from GH, see GraphExtractor instead
 public class PathBidirRef extends Path {
     protected SPTEntry edgeTo;
     private boolean switchFromAndToSPTEntry = false;

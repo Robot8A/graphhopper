@@ -49,7 +49,9 @@ public class Path {
     private double weight = Double.MAX_VALUE;
     private double distance;
     private long time;
+    // ORS-GH MOD START: new field
     protected GHLongArrayList times;
+    // ORS-GH MOD END
     private IntArrayList edgeIds = new IntArrayList();
     private int fromNode = -1;
     private int endNode = -1;
@@ -95,11 +97,6 @@ public class Path {
 
     public int getEndNode() {
         return endNode;
-    }
-
-    protected void addTime(long duration) {
-        times.add(duration);
-        time += duration;
     }
 
     protected Path setEndNode(int end) {
@@ -165,6 +162,9 @@ public class Path {
 
     public Path addTime(long time) {
         this.time += time;
+        // ORS-GH MOD START
+        times.add(time);
+        // ORS-GH MOD END
         return this;
     }
 
@@ -307,7 +307,7 @@ public class Path {
         return points;
     }
 
-    // TODO: where did this go?
+    // TODO ORS: where did this go?
 //    /**
 //     * @return the list of instructions for this path.
 //     */

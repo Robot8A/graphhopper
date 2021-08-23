@@ -1,8 +1,5 @@
 package com.graphhopper.routing.util;
 
-import com.graphhopper.routing.profiles.DecimalEncodedValue;
-import com.graphhopper.util.EdgeIteratorState;
-
 /**
  * Retrieve default speed
  *
