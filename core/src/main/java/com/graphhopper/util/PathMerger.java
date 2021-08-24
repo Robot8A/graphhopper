@@ -21,6 +21,7 @@ import com.graphhopper.ResponsePath;
 import com.graphhopper.routing.InstructionsFromEdges;
 import com.graphhopper.routing.Path;
 import com.graphhopper.routing.ev.EncodedValueLookup;
+import com.graphhopper.routing.util.PathProcessor;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.details.PathDetailsBuilderFactory;

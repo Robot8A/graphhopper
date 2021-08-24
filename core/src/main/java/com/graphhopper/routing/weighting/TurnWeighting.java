@@ -84,9 +84,11 @@ public class TurnWeighting extends AbstractAdjustedWeighting {
             return weight;
 
         int origEdgeId = reverse ? edgeState.getOrigEdgeLast() : edgeState.getOrigEdgeFirst();
+        // ORS-GH MOD START new code
         if (inORS) {
             origEdgeId = EdgeIteratorStateHelper.getOriginalEdge(edgeState);
         }
+        // ORS-GH MOD END
         double turnCosts = reverse
                 ? calcTurnWeight(origEdgeId, edgeState.getBaseNode(), prevOrNextEdgeId)
                 : calcTurnWeight(prevOrNextEdgeId, edgeState.getBaseNode(), origEdgeId);

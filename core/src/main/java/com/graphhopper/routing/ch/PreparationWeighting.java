@@ -1,3 +1,5 @@
+// TODO ORS: this file has been removed from GH (after being renmed into CHWeighting)
+
 /*
  *  Licensed to GraphHopper GmbH under one or more contributor
  *  license agreements. See the NOTICE file distributed with this work for

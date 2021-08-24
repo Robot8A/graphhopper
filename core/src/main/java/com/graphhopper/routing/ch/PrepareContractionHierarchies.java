@@ -404,9 +404,10 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation {
     }
 
     // ORS-GH MOD START ADDED (exposed prepareWeighting)
-    public Weighting getPrepareWeighting() {
-        return prepareWeighting;
-    }
+    // TODO ORS: prepareWeighting does not exist anymore
+    //public Weighting getPrepareWeighting() {
+    //    return prepareWeighting;
+    //}
     // ORS-GH MOD END
 
 

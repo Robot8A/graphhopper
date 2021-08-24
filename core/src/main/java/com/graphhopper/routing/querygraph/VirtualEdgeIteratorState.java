@@ -57,13 +57,13 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     public int getOriginalEdge() {
         return originalEdgeId;
     }
-
-    //public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int baseNode, int adjNode, double distance,
-    //                                IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
-    public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int originalEdgeId, int baseNode, int adjNode, double distance,
-                                    IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
-        this.originalEdgeId = originalEdgeId;
     // ORS-GH MOD END
+
+    public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int baseNode, int adjNode, double distance,
+                                    IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+        // ORS-GH MOD START
+        this.originalEdgeId = GHUtility.getEdgeFromEdgeKey(originalEdgeKey);
+        // ORS-GH MOD END
         this.originalEdgeKey = originalEdgeKey;
         this.edgeKey = edgeKey;
         this.baseNode = baseNode;
@@ -379,7 +379,7 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    @Override
+    // TODO ORS: how to deal with @Override
     public long getTime() {
         throw new UnsupportedOperationException("Not supported.");
     }

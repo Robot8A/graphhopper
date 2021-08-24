@@ -23,8 +23,8 @@ public class DateTimeHelper {
 
     public ZonedDateTime getZonedDateTime(EdgeIteratorState iter, long time) {
         int node = iter.getBaseNode();
-        double lat = nodeAccess.getLatitude(node);
-        double lon = nodeAccess.getLongitude(node);
+        double lat = nodeAccess.getLat(node);
+        double lon = nodeAccess.getLon(node);
         String timeZoneId = timeZoneMap.getOverlappingTimeZone(lat, lon).get().getZoneId();
         ZoneId edgeZoneId = ZoneId.of(timeZoneId);
         Instant edgeEnterTime = Instant.ofEpochMilli(time);
