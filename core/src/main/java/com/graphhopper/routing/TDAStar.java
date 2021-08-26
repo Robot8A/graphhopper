@@ -40,6 +40,7 @@ public class TDAStar extends AStar {
         inEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.inEdges(flagEncoder));
         outEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.outEdges(flagEncoder));
 
+        // TODO ORS: should we have a class TdWeighting instead?
         if (!weighting.isTimeDependent())
             throw new RuntimeException("A time-dependent routing algorithm requires a time-dependent weighting.");
     }

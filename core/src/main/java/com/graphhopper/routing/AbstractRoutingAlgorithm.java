@@ -17,6 +17,7 @@
  */
 package com.graphhopper.routing;
 
+import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.Weighting;
@@ -39,6 +40,8 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     protected final EdgeExplorer edgeExplorer;
     protected int maxVisitedNodes = Integer.MAX_VALUE;
     private boolean alreadyRun;
+    // ORS-GH MOD - new fields
+    protected EdgeFilter additionalEdgeFilter;
 
     /**
      * @param graph         specifies the graph where this algorithm will run on
@@ -59,6 +62,14 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     public void setMaxVisitedNodes(int numberOfNodes) {
         this.maxVisitedNodes = numberOfNodes;
     }
+
+    // ORS-GH MOD START - additional method
+    @Override
+    public RoutingAlgorithm setEdgeFilter(EdgeFilter additionalEdgeFilter) {
+        this.additionalEdgeFilter = additionalEdgeFilter;
+        return this;
+    }
+    // ORS-GH MOD END
 
     protected boolean accept(EdgeIteratorState iter, int prevOrNextEdgeId) {
         // for edge-based traversal we leave it for TurnWeighting to decide whether or not a u-turn is acceptable,

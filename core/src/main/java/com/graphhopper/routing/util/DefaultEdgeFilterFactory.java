@@ -27,10 +27,11 @@ import com.graphhopper.util.PMap;
  *
  * @author Peter Karich
  */
-// ORS TODO: this class isn't part of GH anymore
+@Deprecated // TODO ORS: this class isn't part of GH anymore
 public class DefaultEdgeFilterFactory implements EdgeFilterFactory {
     @Override
     public EdgeFilter createEdgeFilter(PMap opts, FlagEncoder flagEncoder, GraphHopperStorage gs) {
-        return DefaultEdgeFilter.allEdges(flagEncoder);
+        // ORS orig: return DefaultEdgeFilter.allEdges(flagEncoder);
+        return EdgeFilter.ALL_EDGES; // TODO ORS: this is only a quick hack to make it compile
     }
 }

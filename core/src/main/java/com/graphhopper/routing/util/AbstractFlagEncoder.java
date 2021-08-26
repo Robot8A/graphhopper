@@ -70,7 +70,9 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
     protected EncodedValueLookup encodedValueLookup;
     private ConditionalTagInspector conditionalTagInspector;
     protected FerrySpeedCalculator ferrySpeedCalc;
+    // ORS-GH MOD START - new field
     private ConditionalSpeedInspector conditionalSpeedInspector;
+    // ORS-GH MOD END
 
     /**
      * @param speedBits    specify the number of bits used for speed
@@ -287,16 +289,17 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
     }
 
     // ORS GH MOD start
-    // TODO: both methods have been removed from GH 3.0, need to check how that need to be adjusted
-
     // ORS GH MOD switch from package-private to public for package-external flag encoders and some weightings
+    @Deprecated // TODO ORS: method removed from GH3.0
     public double getSpeed(IntsRef edgeFlags) {
         return getSpeed(false, edgeFlags);
     }
 
     // ORS GH MOD switch from package-private to public for package-external flag encoders and some weightings
+    @Deprecated // TODO ORS: method removed from GH3.0
     public double getSpeed(boolean reverse, IntsRef edgeFlags) {
-        double speedVal = speedEncoder.getDecimal(reverse, edgeFlags);
+        // ORS orig: double speedVal = speedEncoder.getDecimal(reverse, edgeFlags);
+        double speedVal = avgSpeedEnc.getDecimal(reverse, edgeFlags); // TODO ORS: temporary hack to make it compile
         if (speedVal < 0)
             throw new IllegalStateException("Speed was negative!? " + speedVal);
 
@@ -319,6 +322,7 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         return speed;
     }
 
+    // ORS-GH MOD START
     protected double applyConditionalSpeed(String value, double speed) {
         double maxSpeed = parseSpeed(value);
         // We obey speed limits
@@ -329,7 +333,7 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         return speed;
     }
 
-    // TODO: parseSpeed has been removed in GH 3.0, do we need to reintroduce for applyConditionalSpeed or has ist just been moved someplace?
+    // TODO ORS: parseSpeed has been removed in GH 3.0, do we need to reintroduce for applyConditionalSpeed or has ist just been moved someplace?
     /**
      * @return the speed in km/h
      */
@@ -382,6 +386,7 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
             return -1;
         }
     }
+    // ORS-GH MOD END
 
     protected String getPropertiesString() {
         return "speed_factor=" + speedFactor + "|speed_bits=" + speedBits + "|turn_costs=" + (maxTurnCosts > 0);

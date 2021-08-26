@@ -20,6 +20,7 @@ package com.graphhopper.routing.util;
 import com.graphhopper.reader.ReaderWay;
 import com.graphhopper.reader.osm.conditional.ConditionalOSMSpeedInspector;
 import com.graphhopper.reader.osm.conditional.ConditionalParser;
+import com.graphhopper.reader.osm.conditional.DateRangeParser;
 import com.graphhopper.routing.ev.EncodedValue;
 import com.graphhopper.routing.ev.UnsignedDecimalEncodedValue;
 import com.graphhopper.routing.ev.BooleanEncodedValue;
@@ -50,8 +51,10 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
      */
     protected final Map<String, Integer> defaultSpeedMap = new HashMap<>();
 
+    // ORS-GH MOD START - new fields
     private BooleanEncodedValue conditionalEncoder;
     private BooleanEncodedValue conditionalSpeedEncoder;
+    // ORS-GH MOD END
 
     public CarFlagEncoder() {
         this(new PMap());
@@ -159,13 +162,15 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         return TransportationMode.CAR;
     }
 
+    // ORS-GH MOD START - override parent
     @Override
-    protected void init() {
-        super.init();
+    protected void init(DateRangeParser dateRangeParser) {
+        super.init(dateRangeParser);
         ConditionalOSMSpeedInspector conditionalOSMSpeedInspector = new ConditionalOSMSpeedInspector(Arrays.asList("maxspeed"));
         conditionalOSMSpeedInspector.addValueParser(ConditionalParser.createDateTimeParser());
         setConditionalSpeedInspector(conditionalOSMSpeedInspector);
     }
+    // ORS-GH MOD END
 
     @Override
     public int getVersion() {
@@ -258,6 +263,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
             double speed = getSpeed(way);
             speed = applyMaxSpeed(way, speed);
 
+            // ORS-GH MOD START- new code
             // TODO: save conditional speeds only if their value is different from the default speed
             if (getConditionalSpeedInspector().hasConditionalSpeed(way))
                 if (getConditionalSpeedInspector().hasLazyEvaluatedConditions())
@@ -265,7 +271,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
                 else
                     // conditional maxspeed overrides unconditional one
                     speed = applyConditionalSpeed(getConditionalSpeedInspector().getTagValue(), speed);
-
+            // ORS-GH MOD END
             speed = applyBadSurfaceSpeed(way, speed);
 
             setSpeed(false, edgeFlags, speed);
@@ -284,8 +290,10 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
                 accessEnc.setBool(true, edgeFlags, access);
             }
 
+            // ORS-GH MOD START -- additional code
             if (accept.isConditional())
                 conditionalEncoder.setBool(false, edgeFlags, true);
+            // ORS-GH MOD END
 
         } else {
             double ferrySpeed = ferrySpeedCalc.getSpeed(way);
@@ -299,11 +307,13 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         return edgeFlags;
     }
 
+    // ORS-GH MOD START - new method
     public final BooleanEncodedValue getConditionalEnc() {
         if (conditionalEncoder == null)
             throw new NullPointerException("FlagEncoder " + toString() + " not yet initialized");
         return conditionalEncoder;
     }
+    // ORS-GH MOD END
 
     /**
      * make sure that isOneway is called before

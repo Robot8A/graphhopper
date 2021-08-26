@@ -1,5 +1,4 @@
-// TODO ORS: This class has been removed from GH, however some files
-// TODO ORS: still include it. Did there something go wrong when merging?
+// TODO ORS: This class has been removed from GH
 /*
  *  Licensed to GraphHopper GmbH under one or more contributor
  *  license agreements. See the NOTICE file distributed with this work for
@@ -36,6 +35,7 @@ import com.graphhopper.util.EdgeIteratorState;
  * @author Peter Karich
  * @author Andrzej Oles
  */
+@Deprecated // TODO ORS: needs to be refactored into the appropriate places (e.g. TurnCostProvider, Weightings)
 public class TurnWeighting extends AbstractAdjustedWeighting {
     public static final int INFINITE_U_TURN_COSTS = -1;
     /**
@@ -45,6 +45,7 @@ public class TurnWeighting extends AbstractAdjustedWeighting {
     private final TurnCostExtension turnCostExt;
     private final double uTurnCosts;
     // ORS-GH MOD START
+    // TODO ORS: clean up this quick work around
     // corrected turn restrictions for virtual edges have to be turned off if not in ORS due to failing tests
     public boolean inORS = false;
     public void setInORS(boolean inORS) {
