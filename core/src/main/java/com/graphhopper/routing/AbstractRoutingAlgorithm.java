@@ -40,9 +40,9 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     protected final EdgeExplorer edgeExplorer;
     protected int maxVisitedNodes = Integer.MAX_VALUE;
     private boolean alreadyRun;
-    // ORS-GH MOD - new fields
+    // ORS-GH MOD START - new field
     protected EdgeFilter additionalEdgeFilter;
-
+    // ORS-GH MOS END
     /**
      * @param graph         specifies the graph where this algorithm will run on
      * @param weighting     set the used weight calculation (e.g. fastest, shortest).

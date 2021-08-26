@@ -40,7 +40,6 @@ public class TDAStar extends AStar {
         inEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.inEdges(flagEncoder));
         outEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.outEdges(flagEncoder));
 
-        // TODO ORS: should we have a class TdWeighting instead?
         if (!weighting.isTimeDependent())
             throw new RuntimeException("A time-dependent routing algorithm requires a time-dependent weighting.");
     }
@@ -78,7 +77,7 @@ public class TDAStar extends AStar {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double alreadyVisitedWeight = weighting.calcWeight(iter, reverse, currEdge.edge, currEdge.time) + currEdge.weightOfVisitedPath;
+                double alreadyVisitedWeight = weighting.calcEdgeWeight(iter, reverse, currEdge.edge, currEdge.time) + currEdge.weightOfVisitedPath;
                 if (Double.isInfinite(alreadyVisitedWeight))
                     continue;
 
@@ -97,7 +96,7 @@ public class TDAStar extends AStar {
                         ase.weight = estimationFullWeight;
                         ase.weightOfVisitedPath = alreadyVisitedWeight;
                     }
-                    ase.time = currEdge.time + (reverse ? -1 : 1) * weighting.calcMillis(iter, reverse, currEdge.edge, currEdge.time);
+                    ase.time = currEdge.time + (reverse ? -1 : 1) * weighting.calcEdgeMillis(iter, reverse, currEdge.edge, currEdge.time);
                     ase.parent = currEdge;
                     prioQueueOpenSet.add(ase);
 

@@ -36,7 +36,6 @@ import com.graphhopper.util.Parameters;
  */
 public class TDDijkstra extends Dijkstra {
 
-    // TODO ORS: Should there be a TdWeighting instead of querying isTimeDependent?
     public TDDijkstra(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
 
@@ -76,7 +75,7 @@ public class TDDijkstra extends Dijkstra {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double tmpWeight = weighting.calcWeight(iter, reverseDirection, currEdge.edge, currEdge.time) + currEdge.weight;
+                double tmpWeight = weighting.calcEdgeWeight(iter, reverseDirection, currEdge.time) + currEdge.weight;
                 if (Double.isInfinite(tmpWeight)) {
                     continue;
                 }
@@ -94,7 +93,7 @@ public class TDDijkstra extends Dijkstra {
                     continue;
 
                 nEdge.parent = currEdge;
-                nEdge.time = (reverseDirection ? -1 : 1) * weighting.calcMillis(iter, reverseDirection, currEdge.edge, currEdge.time) + currEdge.time;
+                nEdge.time = (reverseDirection ? -1 : 1) * weighting.calcEdgeMillis(iter, reverseDirection, currEdge.time) + currEdge.time;
                 fromHeap.add(nEdge);
 
                 updateBestPath(iter, nEdge, traversalId);

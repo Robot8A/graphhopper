@@ -1017,7 +1017,7 @@ public class GHUtility {
             throw new UnsupportedOperationException("Not supported. Edge is empty.");
         }
 
-        @Override
+        // TODO ORS: how to deal with @Override
         public long getTime() {
             throw new UnsupportedOperationException("Not supported. Edge is empty.");
         }

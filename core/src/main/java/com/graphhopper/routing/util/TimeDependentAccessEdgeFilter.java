@@ -3,7 +3,7 @@ package com.graphhopper.routing.util;
 import ch.poole.conditionalrestrictionparser.Condition;
 import ch.poole.conditionalrestrictionparser.ConditionalRestrictionParser;
 import ch.poole.conditionalrestrictionparser.Restriction;
-import com.graphhopper.routing.EdgeKeys;
+import com.graphhopper.routing.querygraph.EdgeKeys;
 import com.graphhopper.routing.ev.BooleanEncodedValue;
 import com.graphhopper.storage.ConditionalEdges;
 import com.graphhopper.util.DateTimeHelper;

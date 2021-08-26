@@ -16,11 +16,11 @@
  *  limitations under the License.
  */
 
-package com.graphhopper.routing;
+package com.graphhopper.routing.querygraph;
 
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.GHUtility;
-
+// ORS-GH MOD START - additional class
 public class EdgeKeys {
 
     public static int getOriginalEdge(EdgeIteratorState inst){
@@ -32,5 +32,5 @@ public class EdgeKeys {
             return inst.getEdge();
         }
     }
-
+// ORS-GH MOD END
 }

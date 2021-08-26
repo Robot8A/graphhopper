@@ -298,7 +298,7 @@ class VirtualEdgeIterator implements EdgeIterator {
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    @Override
+    // TODO ORS: how to deal with @Override
     public long getTime() {
         // will be called only from PreparationWeighting and if isShortcut is true
         return ((CHEdgeIteratorState) edges.get(current)).getTime();

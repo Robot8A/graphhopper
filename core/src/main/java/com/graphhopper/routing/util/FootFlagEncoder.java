@@ -313,11 +313,13 @@ public class FootFlagEncoder extends AbstractFlagEncoder {
      */
     @Override
     // ORS-GH MOD - change access level from package-private to public due to change in superclass
+    // TODO ORS: remove this outdated method
     public double getSpeed(boolean reverse, IntsRef edgeFlags) {
         double speed = super.getSpeed(reverse, edgeFlags);
         if (speed == getMaxSpeed()) {
             // We cannot be sure if it was a long or a short trip
-            return SHORT_TRIP_FERRY_SPEED;
+            //return SHORT_TRIP_FERRY_SPEED;
+            throw new RuntimeException("SHORT_TRIP_FERRY_SPEED has been removed from GH3");
         }
         return speed;
     }

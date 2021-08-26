@@ -35,7 +35,7 @@ public abstract class AbstractWeighting implements Weighting {
     protected final DecimalEncodedValue avSpeedEnc;
     protected final BooleanEncodedValue accessEnc;
     private final TurnCostProvider turnCostProvider;
-    // ORS-GH MOD START - new field
+    // ORS-GH MOD START - additional field
     protected SpeedCalculator speedCalculator;
     // ORS-GH MOD END
 

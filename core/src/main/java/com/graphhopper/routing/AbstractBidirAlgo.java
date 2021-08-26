@@ -19,6 +19,7 @@ package com.graphhopper.routing;
 
 import com.carrotsearch.hppc.IntObjectMap;
 import com.graphhopper.coll.GHIntObjectHashMap;
+import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.util.EdgeExplorer;
@@ -57,6 +58,9 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
     // Modification by Andrzej Oles: ALT patch https://github.com/GIScience/graphhopper/issues/21
     protected double approximatorOffset = 0.0;
     // ORS-GH MOD END
+    // ORS-GH MOD START - new field
+    protected EdgeFilter additionalEdgeFilter;
+    // ORS-GH MOS END
 
 
 
@@ -317,6 +321,14 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
     public void setMaxVisitedNodes(int numberOfNodes) {
         this.maxVisitedNodes = numberOfNodes;
     }
+
+    // ORS-GH MOD START - additional method
+    @Override
+    public RoutingAlgorithm setEdgeFilter(EdgeFilter additionalEdgeFilter) {
+        this.additionalEdgeFilter = additionalEdgeFilter;
+        return this;
+    }
+    // ORS-GH MOD END
 
     protected void checkAlreadyRun() {
         if (alreadyRun)
