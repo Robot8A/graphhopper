@@ -1,4 +1,4 @@
-package com.graphhopper.routing;
+package com.graphhopper.routing.querygraph;
 
 import com.graphhopper.routing.querygraph.VirtualEdgeIterator;
 import com.graphhopper.routing.querygraph.VirtualEdgeIteratorState;

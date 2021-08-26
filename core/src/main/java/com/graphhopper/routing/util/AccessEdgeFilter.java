@@ -24,26 +24,27 @@ import static com.graphhopper.storage.ConditionalEdges.ACCESS;
  *
  * @author Andrzej Oles
  */
+// TODO ORS: GH uses EncodedValues instead of flagEncoder now
 public class AccessEdgeFilter {
     public static EdgeFilter outEdges(FlagEncoder flagEncoder) {
         if (hasConditionalAccess(flagEncoder))
             return ConditionalAccessEdgeFilter.outEdges(flagEncoder);
         else
-            return DefaultEdgeFilter.outEdges(flagEncoder);
+            return AccessFilter.outEdges(flagEncoder);
     }
 
     public static EdgeFilter inEdges(FlagEncoder flagEncoder) {
         if (hasConditionalAccess(flagEncoder))
             return ConditionalAccessEdgeFilter.inEdges(flagEncoder);
         else
-            return DefaultEdgeFilter.inEdges(flagEncoder);
+            return AccessFilter.inEdges(flagEncoder);
     }
 
     public static EdgeFilter allEdges(FlagEncoder flagEncoder) {
         if (hasConditionalAccess(flagEncoder))
             return ConditionalAccessEdgeFilter.allEdges(flagEncoder);
         else
-            return DefaultEdgeFilter.allEdges(flagEncoder);
+            return AccessFilter.allEdges(flagEncoder);
     }
 
     private static boolean hasConditionalAccess(FlagEncoder flagEncoder) {

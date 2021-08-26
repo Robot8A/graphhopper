@@ -19,6 +19,7 @@ package com.graphhopper.routing.weighting;
 
 import com.graphhopper.routing.ev.BooleanEncodedValue;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.SpeedCalculator;
 import com.graphhopper.util.EdgeIteratorState;
 
 /**
@@ -52,8 +53,8 @@ public interface Weighting {
      */
     double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
-    // ORS-GH MOD START
-    double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
+    // ORS-GH MOD START - additional method
+    double calcEdgeWeight(EdgeIteratorState edge, boolean reverse, long edgeEnterTime);
     // ORS-GH MOD END
 
     /**
@@ -61,6 +62,11 @@ public interface Weighting {
      * It is typically used for post-processing and on only a few thousand edges.
      */
     long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse);
+
+    // ORS-GH MOD START
+    long calcEdgeMillis(EdgeIteratorState edge, boolean reverse, long edgeEnterTime);
+    // ORS-GH MOD END
+
 
     double calcTurnWeight(int inEdge, int viaNode, int outEdge);
 
@@ -73,11 +79,6 @@ public interface Weighting {
      */
     boolean hasTurnCosts();
 
-    // ORS-GH MOD START
-    // TODO ORS: can we avoid adding an abstract method? All implementors are affected by such a change
-    long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime);
-    // ORS-GH MOD END
-
     FlagEncoder getFlagEncoder();
 
     String getName();
@@ -89,5 +90,12 @@ public interface Weighting {
         }
         return calcEdgeWeight(edgeState, reverse);
     }
+    // ORS-GH MOD START - additional methods
+    boolean isTimeDependent();
+
+    SpeedCalculator getSpeedCalculator();
+
+    void setSpeedCalculator(SpeedCalculator speedCalculator);
+    // ORS-GH MOD END
 
 }

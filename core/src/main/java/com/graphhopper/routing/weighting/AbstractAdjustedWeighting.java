@@ -51,6 +51,16 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     }
 
     @Override
+    public double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
+        return superWeighting.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
+    }
+
+    @Override
+    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
+        return superWeighting.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
+    }
+
+    @Override
     public double calcTurnWeight(int inEdge, int viaNode, int outEdge) {
         return superWeighting.calcTurnWeight(inEdge, viaNode, outEdge);
     }
@@ -63,15 +73,6 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     @Override
     public boolean hasTurnCosts() {
         return superWeighting.hasTurnCosts();
-    }
-
-    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
-        return calcMillis(edgeState, reverse, prevOrNextEdgeId, -1);
-    }
-
-    @Override
-    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
-        return superWeighting.calcMillis(edgeState, reverse, prevOrNextEdgeId, edgeEnterTime);
     }
 
     /**

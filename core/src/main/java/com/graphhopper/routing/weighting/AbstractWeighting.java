@@ -60,12 +60,12 @@ public abstract class AbstractWeighting implements Weighting {
 
     // TODO ORS: probably not needed any more?
     @Override
-    public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
-        return calcWeight(edge, reverse, prevOrNextEdgeId);
+    public double calcEdgeWeight(EdgeIteratorState edge, boolean reverse, long edgeEnterTime) {
+        return calcEdgeWeight(edge, reverse);
     }
 
-    public long calcMillis(EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
-        return calcMillis(edgeState, reverse, prevOrNextEdgeId, -1);
+    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
+        return calcEdgeMillis(edgeState, reverse, -1);
     }
     // END TODO ORS
 
@@ -147,7 +147,7 @@ public abstract class AbstractWeighting implements Weighting {
         return getName() + "|" + flagEncoder;
     }
 
-    // ORS-GH MOD START
+    // ORS-GH MOD START - additional methods
     @Override
     public boolean isTimeDependent() {
         return false;
@@ -162,4 +162,5 @@ public abstract class AbstractWeighting implements Weighting {
     public void setSpeedCalculator(SpeedCalculator speedCalculator) {
         this.speedCalculator = speedCalculator;
     }
+    // ORS-GH MOD END
 }

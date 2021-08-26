@@ -44,35 +44,35 @@ public class PreparationWeighting extends AbstractAdjustedWeighting {
     }
 
     @Override
-    public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId) {
+    public double calcEdgeWeight(EdgeIteratorState edge, boolean reverse) {
         if (isShortcut(edge))
             return ((CHEdgeIteratorState) edge).getWeight();
 
-        return superWeighting.calcWeight(edge, reverse, prevOrNextEdgeId);
+        return superWeighting.calcEdgeWeight(edge, reverse);
     }
 
     @Override
-    public double calcWeight(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+    public double calcEdgeWeight(EdgeIteratorState edge, boolean reverse, long edgeEnterTime) {
         if (isShortcut(edge))
             return ((CHEdgeIteratorState) edge).getWeight();
 
-        return superWeighting.calcWeight(edge, reverse, prevOrNextEdgeId, edgeEnterTime);
+        return superWeighting.calcEdgeWeight(edge, reverse, edgeEnterTime);
     }
 
     @Override
-    public long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId) {
+    public long calcEdgeMillis(EdgeIteratorState edge, boolean reverse) {
         if (isShortcut(edge))
             return ((CHEdgeIteratorState) edge).getTime();
 
-        return superWeighting.calcMillis(edge, reverse, prevOrNextEdgeId);
+        return superWeighting.calcEdgeMillis(edge, reverse);
     }
 
     @Override
-    public long calcMillis(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+    public long calcEdgeMillis(EdgeIteratorState edge, boolean reverse, long edgeEnterTime) {
         if (isShortcut(edge))
             return ((CHEdgeIteratorState) edge).getTime();
 
-        return super.calcMillis(edge, reverse, prevOrNextEdgeId, edgeEnterTime);
+        return super.calcEdgeMillis(edge, reverse, edgeEnterTime);
     }
 
     boolean isShortcut(EdgeIteratorState edge) {
