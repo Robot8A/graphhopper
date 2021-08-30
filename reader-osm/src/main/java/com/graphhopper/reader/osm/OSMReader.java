@@ -358,16 +358,7 @@ public class OSMReader implements DataReader {
         // TODO move this after we have created the edge and know the coordinates => encodingManager.applyWayTags
         LongArrayList osmNodeIds = way.getNodes();
         // Estimate length of ways containing a route tag e.g. for ferry speed calculation
-        int first = getNodeMap().get(osmNodeIds.get(0));
-        int last = getNodeMap().get(osmNodeIds.get(osmNodeIds.size() - 1));
-        double firstLat = getTmpLatitude(first), firstLon = getTmpLongitude(first);
-        double lastLat = getTmpLatitude(last), lastLon = getTmpLongitude(last);
-        if (!Double.isNaN(firstLat) && !Double.isNaN(firstLon) && !Double.isNaN(lastLat) && !Double.isNaN(lastLon)) {
-            double estimatedDist = distCalc.calcDist(firstLat, firstLon, lastLat, lastLon);
-            // Add artificial tag for the estimated distance and center
-            way.setTag("estimated_distance", estimatedDist);
-            way.setTag("estimated_center", new GHPoint((firstLat + lastLat) / 2, (firstLon + lastLon) / 2));
-        }
+        recordWayDistance(way, osmNodeIds);
 
         if (way.getTag("duration") != null) {
             try {
