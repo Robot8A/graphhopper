@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * @author Andrzej Oles
  */
-public class ConditionalEdges implements GraphExtension {
+public class ConditionalEdges implements Storable<ConditionalEdges> {
     Map<Integer, Integer> values = new HashMap<>();
     private final Map<String, ConditionalEdgesMap> conditionalEdgesMaps = new LinkedHashMap<>();
 
@@ -28,27 +28,7 @@ public class ConditionalEdges implements GraphExtension {
         this.encoderName = encoderName;
     }
 
-    @Override
-    public boolean isRequireNodeField() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequireEdgeField() {
-        return false;
-    }
-
-    @Override
-    public int getDefaultNodeFieldValue() {
-        throw new UnsupportedOperationException("Not supported.");
-    }
-
-    @Override
-    public int getDefaultEdgeFieldValue() {
-        return 0;
-    }
-
-    @Override
+    // TODO ORS: How to deal with @Override
     public void init(Graph graph, Directory dir) {
         if (this.conditionalIndex != null || !conditionalEdgesMaps.isEmpty())
             throw new AssertionError("The conditional restrictions storage must be initialized only once.");
@@ -70,7 +50,7 @@ public class ConditionalEdges implements GraphExtension {
     }
 
     @Override
-    public GraphExtension create(long byteCount) {
+    public ConditionalEdges create(long byteCount) {
         conditionalIndex.create(byteCount);
         for (ConditionalEdgesMap conditionalEdgesMap: conditionalEdgesMaps.values())
             conditionalEdgesMap.create(byteCount);
@@ -85,13 +65,6 @@ public class ConditionalEdges implements GraphExtension {
             if (!conditionalEdgesMap.loadExisting())
                 throw new IllegalStateException("Cannot load 'conditional_edges_map'. corrupt file or directory? ");
         return true;
-    }
-
-    @Override
-    public void setSegmentSize(int bytes) {
-        conditionalIndex.setSegmentSize(bytes);
-        for (ConditionalEdgesMap conditionalEdgesMap: conditionalEdgesMaps.values())
-            conditionalEdgesMap.setSegmentSize(bytes);
     }
 
     @Override
@@ -114,11 +87,6 @@ public class ConditionalEdges implements GraphExtension {
         for (ConditionalEdgesMap conditionalEdgesMap: conditionalEdgesMaps.values())
             capacity += conditionalEdgesMap.getCapacity();
         return capacity;
-    }
-
-    @Override
-    public GraphExtension copyTo(GraphExtension clonedStorage) {
-        throw new IllegalStateException("NOT IMPLEMENTED");
     }
 
     @Override

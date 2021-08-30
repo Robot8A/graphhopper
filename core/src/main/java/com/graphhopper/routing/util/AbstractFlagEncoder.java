@@ -147,6 +147,16 @@ public abstract class AbstractFlagEncoder implements FlagEncoder {
         return conditionalTagInspector;
     }
 
+    // ORS-GH MOD START - additional method
+    public ConditionalSpeedInspector getConditionalSpeedInspector() {
+        return conditionalSpeedInspector;
+    }
+
+    public void setConditionalSpeedInspector(ConditionalSpeedInspector conditionalSpeedInspector) {
+        this.conditionalSpeedInspector = conditionalSpeedInspector;
+    }
+    // ORS-GH MOD END
+
     /**
      * Defines bits used for edge flags used for access, speed etc.
      */

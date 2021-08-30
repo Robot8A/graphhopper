@@ -32,8 +32,13 @@ import com.graphhopper.util.EdgeIteratorState;
 public class PathTD extends Path {
     private boolean reverse = false;
 
+    public PathTD(Graph g) {
+        super(g);
+    }
+    @Deprecated // TODO ORS: how to deal with weighting now?
     public PathTD(Graph g, Weighting weighting) {
-        super(g, weighting);
+        // ORS orig: super(g, weighting);
+        super(g);
     }
 
     public PathTD setReverse(boolean reverse) {

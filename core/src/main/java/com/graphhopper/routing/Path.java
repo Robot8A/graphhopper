@@ -47,7 +47,10 @@ public class Path {
     final Graph graph;
     private final NodeAccess nodeAccess;
     private double weight = Double.MAX_VALUE;
-    private double distance;
+    // ORS-GH MOD START: private -> protected
+    // TODO ORS: how to avoid this change?
+    protected double distance;
+    // ORS-GH MOD END
     private long time;
     // ORS-GH MOD START: new field
     protected GHLongArrayList times;

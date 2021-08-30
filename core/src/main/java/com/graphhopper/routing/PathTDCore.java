@@ -119,7 +119,7 @@ public class PathTDCore extends PathBidirRef {
             @Override
             public void visit(EdgeIteratorState edge, boolean reverse, int prevOrNextEdgeId) {
                 distance += edge.getDistance();
-                addTime(weighting.calcMillis(edge, reverse, NO_EDGE));
+                addTime(weighting.calcEdgeMillis(edge, reverse));
                 addEdge(edge.getEdge());
             }
         }, false);

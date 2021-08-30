@@ -21,7 +21,6 @@ import com.carrotsearch.hppc.IntObjectMap;
 import com.graphhopper.coll.GHIntObjectHashMap;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.TraversalMode;
-import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 
@@ -105,6 +104,27 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
         runAlgo();
         return extractPath();
     }
+
+    // ORS-GH MOD START: new method
+    // TODO ORS: provide reason for this change
+    @Override
+    public Path calcPath(int from, int to, long at) {
+        // TODO ORS: implement cleanly
+        throw new RuntimeException("Dummy implementation to make ORS-GH compile");
+        return null;
+    }
+    // ORS-GH-MOD END
+
+    // ORS-GH MOD START: new method
+    // TODO ORS: provide reason for this change
+    @Override
+    public List<Path> calcPaths(int from, int to, long at) {
+        // TODO ORS: implement cleanly
+        throw new RuntimeException("Dummy implementation to make ORS-GH compile");
+        return null;
+    }
+    // ORS-GH-MOD END
+
 
     void init(int from, double fromWeight, int to, double toWeight) {
         initFrom(from, fromWeight);

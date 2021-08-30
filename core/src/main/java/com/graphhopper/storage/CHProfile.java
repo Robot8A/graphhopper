@@ -1,15 +1,11 @@
-// TODO ORS: this class has been moved to config/CHProfile. Shouldn't we add
-// TODO ORS: a CaltProfile there?
 package com.graphhopper.storage;
 
 import com.graphhopper.routing.util.TraversalMode;
-import com.graphhopper.routing.weighting.AbstractWeighting;
-import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 
 import java.util.Objects;
 
-import static com.graphhopper.routing.weighting.TurnWeighting.INFINITE_U_TURN_COSTS;
+import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
 
 /**
  * Specifies all properties of a CH routing profile. Generally these properties cannot be changed after the CH
@@ -17,6 +13,7 @@ import static com.graphhopper.routing.weighting.TurnWeighting.INFINITE_U_TURN_CO
  *
  * @author easbar
  */
+@Deprecated // TODO ORS: see config/CHProfile. Should we add a CaltProfile there?
 public class CHProfile {
     private final Weighting weighting;
     private final boolean edgeBased;

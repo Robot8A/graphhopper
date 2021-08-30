@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * @author Andrzej Oles
  */
-public class ConditionalEdgesMap implements GraphExtension {
+public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
     private static final int EF_EDGE_BYTES = 4;
     private static final int EF_CONDITION_BYTES = 4;
     protected final int EF_EDGE, EF_CONDITION;
@@ -92,27 +92,7 @@ public class ConditionalEdgesMap implements GraphExtension {
         return (index == null) ? "" : conditionalIndex.get((long) index);
     }
 
-    @Override
-    public boolean isRequireNodeField() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequireEdgeField() {
-        return false;
-    }
-
-    @Override
-    public int getDefaultNodeFieldValue() {
-        throw new UnsupportedOperationException("Not supported.");
-    }
-
-    @Override
-    public int getDefaultEdgeFieldValue() {
-        return 0;
-    }
-
-    @Override
+    // TODO ORS how to deal with @Override
     public void init(Graph graph, Directory dir) {
         if (edgesCount > 0)
             throw new AssertionError("The conditional restrictions storage must be initialized only once.");
@@ -121,7 +101,7 @@ public class ConditionalEdgesMap implements GraphExtension {
     }
 
     @Override
-    public GraphExtension create(long byteCount) {
+    public ConditionalEdgesMap create(long byteCount) {
         edges.create(byteCount * edgeEntryBytes);
         return this;
     }
@@ -147,11 +127,6 @@ public class ConditionalEdgesMap implements GraphExtension {
     }
 
     @Override
-    public void setSegmentSize(int bytes) {
-        edges.setSegmentSize(bytes);
-    }
-
-    @Override
     public void flush() {
         edges.setHeader(0, edgeEntryBytes);
         edges.setHeader(1 * 4, edgesCount);
@@ -166,21 +141,6 @@ public class ConditionalEdgesMap implements GraphExtension {
     @Override
     public long getCapacity() {
         return edges.getCapacity();
-    }
-
-    @Override
-    public GraphExtension copyTo(GraphExtension clonedStorage) {
-
-        if (!(clonedStorage instanceof ConditionalEdgesMap)) {
-            throw new IllegalStateException("the extended storage to clone must be the same");
-        }
-
-        ConditionalEdgesMap clonedTC = (ConditionalEdgesMap) clonedStorage;
-
-        edges.copyTo(clonedTC.edges);
-        clonedTC.edgesCount = edgesCount;
-
-        return clonedStorage;
     }
 
     @Override

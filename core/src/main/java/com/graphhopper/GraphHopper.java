@@ -62,7 +62,7 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-import static com.graphhopper.routing.weighting.TurnWeighting.INFINITE_U_TURN_COSTS;
+import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
 import static com.graphhopper.util.Helper.*;
 import static com.graphhopper.util.Parameters.Algorithms.*;
 

@@ -4,70 +4,34 @@ package com.graphhopper.storage;
 import java.util.ArrayList;
 
 // ORS-GH MOD - Modification by Maxim Rylov: Added a new class.
-public class ExtendedStorageSequence  implements GraphExtension {
+public class ExtendedStorageSequence  implements Storable<ExtendedStorageSequence> {
 
-    private GraphExtension[] extensions;
+    private Storable[] extensions;
     private int numExtensions;
-    private boolean isRequireNodeField = false;
-    private boolean isRequireEdgeField = false;
-    private int defaultNodeValue = -1;
-    private int defaultEdgeValue = -1;
 
-    public ExtendedStorageSequence(ArrayList<GraphExtension> seq) {
+    public ExtendedStorageSequence(ArrayList<Storable<Object>> seq) {
         numExtensions = seq.size();
-        extensions = seq.toArray(new GraphExtension[numExtensions]);
-
-        for (int i = 0; i < numExtensions; i++) {
-            GraphExtension ge = extensions[i];
-            if (ge.isRequireNodeField()) {
-                isRequireNodeField = true;
-                defaultNodeValue = ge.getDefaultNodeFieldValue();
-            }
-            if (ge.isRequireEdgeField()) {
-                isRequireEdgeField = true;
-                defaultEdgeValue = ge.getDefaultEdgeFieldValue();
-            }
-        }
+        extensions = seq.toArray(new Storable[numExtensions]);
     }
 
-    public GraphExtension[] getExtensions() {
+    public Storable<Object>[] getExtensions() {
         return extensions;
     }
 
-    @Override
-    public boolean isRequireNodeField() {
-        return isRequireNodeField;
-    }
+    // TODO ORS: init is gone, how to deal with @Override
+    //public void init(Graph graph, Directory dir) {
+    //    for (int i = 0; i < numExtensions; i++) {
+    //        extensions[i].init(graph, dir);
+    //    }
+    //}
 
     @Override
-    public boolean isRequireEdgeField() {
-        return isRequireEdgeField;
-    }
-
-    @Override
-    public int getDefaultNodeFieldValue() {
-        return defaultNodeValue;
-    }
-
-    @Override
-    public int getDefaultEdgeFieldValue() {
-        return defaultEdgeValue;
-    }
-
-    @Override
-    public void init(Graph graph, Directory dir) {
-        for (int i = 0; i < numExtensions; i++) {
-            extensions[i].init(graph, dir);
-        }
-    }
-
-    @Override
-    public GraphExtension create(long initSize) {
+    public ExtendedStorageSequence create(long initSize) {
         for (int i = 0; i < numExtensions; i++) {
             extensions[i].create(initSize);
         }
 
-        return extensions[0];
+        return this;
     }
 
     @Override
@@ -81,13 +45,6 @@ public class ExtendedStorageSequence  implements GraphExtension {
         }
 
         return result;
-    }
-
-    @Override
-    public void setSegmentSize(int bytes) {
-        for (int i = 0; i < numExtensions; i++) {
-            extensions[i].setSegmentSize(bytes);
-        }
     }
 
     @Override
@@ -113,12 +70,6 @@ public class ExtendedStorageSequence  implements GraphExtension {
         }
 
         return capacity;
-    }
-
-    @Override
-    public GraphExtension copyTo(GraphExtension extStorage) {
-        // noop
-        return extStorage;
     }
 
     @Override

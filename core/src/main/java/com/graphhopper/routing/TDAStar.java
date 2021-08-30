@@ -65,7 +65,7 @@ public class TDAStar extends AStar {
         EdgeExplorer explorer = reverse ? inEdgeExplorer : outEdgeExplorer;
         while (true) {
             int currVertex = currEdge.adjNode;
-            visitedCount++;
+            visitedNodes++;
             if (isMaxVisitedNodesExceeded())
                 return createEmptyPath();
 
@@ -77,7 +77,7 @@ public class TDAStar extends AStar {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double alreadyVisitedWeight = weighting.calcEdgeWeight(iter, reverse, currEdge.edge, currEdge.time) + currEdge.weightOfVisitedPath;
+                double alreadyVisitedWeight = weighting.calcEdgeWeight(iter, reverse, currEdge.time) + currEdge.weightOfVisitedPath;
                 if (Double.isInfinite(alreadyVisitedWeight))
                     continue;
 
@@ -91,23 +91,23 @@ public class TDAStar extends AStar {
                         ase = new AStarEntry(iter.getEdge(), neighborNode, estimationFullWeight, alreadyVisitedWeight);
                         fromMap.put(traversalId, ase);
                     } else {
-                        prioQueueOpenSet.remove(ase);
+                        fromHeap.remove(ase);
                         ase.edge = iter.getEdge();
                         ase.weight = estimationFullWeight;
                         ase.weightOfVisitedPath = alreadyVisitedWeight;
                     }
-                    ase.time = currEdge.time + (reverse ? -1 : 1) * weighting.calcEdgeMillis(iter, reverse, currEdge.edge, currEdge.time);
+                    ase.time = currEdge.time + (reverse ? -1 : 1) * weighting.calcEdgeMillis(iter, reverse, currEdge.time);
                     ase.parent = currEdge;
-                    prioQueueOpenSet.add(ase);
+                    fromHeap.add(ase);
 
                     updateBestPath(iter, ase, traversalId);
                 }
             }
 
-            if (prioQueueOpenSet.isEmpty())
+            if (fromHeap.isEmpty())
                 return createEmptyPath();
 
-            currEdge = prioQueueOpenSet.poll();
+            currEdge = fromHeap.poll();
             if (currEdge == null)
                 throw new AssertionError("Empty edge cannot happen");
         }
