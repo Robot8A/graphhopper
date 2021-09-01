@@ -79,8 +79,8 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final NodeAccess nodeAccess;
     private final LongIndexedContainer barrierNodeIds = new LongArrayList();
     private final DistanceCalc distCalc = DistanceCalcEarth.DIST_EARTH;
-    // ORS-GH MOD START - new field
-    // TODO ORS: why is this modification needed?
+    // ORS-GH MOD START - additional field
+    // TODO ORS: provide a reason for this modification
     private final DistanceCalc3D distCalc3D = new DistanceCalc3D();
     // ORS-GH MOD END
     private final DouglasPeucker simplifyAlgo = new DouglasPeucker();
@@ -117,8 +117,9 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final IntsRef tempRelFlags;
     private final TurnCostStorage tcs;
 
-    // ORS-GH MOD - Add variable for overriding of 3d calculations
-    // TODO ORS: why is this modification needed?
+    // ORS-GH MOD - new field
+    // used to globally disable 3D calculations due to issues with
+    // the distance values. See https://github.com/GIScience/openrouteservice/issues/725
     private boolean calcDistance3D = true;
 
     // ORS-GH MOD - Add variable for identifying which tags from nodes should be stored on their containing ways
@@ -455,15 +456,16 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
         onProcessWay(way);
         // ORS-GH MOD END
         // ORS-GH MOD START - apply individual processing to each edge
-        // TODO ORS: where is the END?
         for (EdgeIteratorState edge : createdEdges) {
             onProcessEdge(way, edge);
         }
         // store conditionals
         storeConditionalAccess(acceptWay, createdEdges);
         storeConditionalSpeed(edgeFlags, createdEdges);
+        // ORS-GH MOD END
     }
 
+    // ORS-GH MOD START - additional methods
     protected void storeConditionalAccess(EncodingManager.AcceptWay acceptWay, List<EdgeIteratorState> createdEdges) {
         if (acceptWay.hasConditional()) {
             for (FlagEncoder encoder : encodingManager.fetchEdgeEncoders()) {
@@ -490,7 +492,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
             }
         }
     }
-        // ORS-GH MOD END
+    // ORS-GH MOD END
 
     // ORS-GH MOD START - Move the distance calculation to a separate method so it can be cleanly overridden
     protected void recordWayDistance(ReaderWay way, LongArrayList osmNodeIds) {
@@ -545,7 +547,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
         }
     }
 
-    // TODO: is this mod still required?
+    // TODO ORS: is this mod still required?
 //    public void processRelation(ReaderRelation relation) {
 //        if (relation.hasTag("type", "restriction")) {
 //            OSMTurnRelation turnRelation = createTurnRelation(relation);
@@ -864,34 +866,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
 
         double towerNodeDistance = distCalc.calcDistance(pointList);
 
-        // TODO: this mod needs to go wherever this logic went, most likely into calcDistance() above
-//        double towerNodeDistance = 0;
-//        double prevLat = pointList.getLatitude(0);
-//        double prevLon = pointList.getLongitude(0);
-//        double prevEle = pointList.is3D() ? pointList.getElevation(0) : Double.NaN;
-//        double lat, lon, ele = Double.NaN;
-//        PointList pillarNodes = new PointList(pointList.getSize() - 2, nodeAccess.is3D());
-//        int nodes = pointList.getSize();
-//        for (int i = 1; i < nodes; i++) {
-//            // we could save some lines if we would use pointList.calcDistance(distCalc);
-//            lat = pointList.getLatitude(i);
-//            lon = pointList.getLongitude(i);
-//            if (pointList.is3D()) {
-//                ele = pointList.getElevation(i);
-//                if (!distCalc.isCrossBoundary(lon, prevLon)) {
-//                    // ORS-GH MOD START - Allow overriding of using 3D calculations
-//                    if (calcDistance3D) {
-//                        towerNodeDistance += distCalc3D.calcDist(prevLat, prevLon, prevEle, lat, lon, ele);
-//                    } else {
-//                        towerNodeDistance += distCalc.calcDist(prevLat, prevLon, lat, lon);
-//                    }
-//                    // ORS-GH MOD END
-//                }
-//                prevEle = ele;
-//            } else if (!distCalc.isCrossBoundary(lon, prevLon))
-//                towerNodeDistance += distCalc.calcDist(prevLat, prevLon, lat, lon);
-
-            if (towerNodeDistance < 0.001) {
+        if (towerNodeDistance < 0.001) {
             // As investigation shows often two paths should have crossed via one identical point 
             // but end up in two very close points.
             zeroCounter++;
@@ -1110,7 +1085,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     public LongIntMap getNodeMap() {
         return osmNodeIdToInternalNodeMap;
     }
-    // ORS-GHEND
+    // ORS-GH END
 
     protected LongLongMap getNodeFlagsMap() {
         return osmNodeIdToNodeFlagsMap;
@@ -1195,13 +1170,15 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     }
     // ORS-GH MOD END
 
-    // ORS-GH MOD START - Method for setting distanceCalc2d variable
+    // ORS-GH MOD START - additional method
+    // see calcDistance3D
     public void setCalcDistance3D(boolean use3D) {
         this.calcDistance3D = use3D;
     }
     // ORS-GH MOD END
 
-    // ORS-GH MOD START - expose distance calc object
+    // ORS-GH MOD START - additional method
+    // TODO ORS: provide a reason for this change
     protected DistanceCalc getDistanceCalc(boolean use3D) {
         if (use3D)
             return distCalc3D;

@@ -74,6 +74,7 @@ public class ExtendedGHRequest extends GHRequest {
     // ORS-GH MOD START
     // ****************************************************************
     // Modification by Maxim Rylov: Added getEdgeFilter method.
+    // TODO ORS: provide a reason for this change
     public EdgeFilter getEdgeFilter() {
         return edgeFilter;
     }
@@ -85,10 +86,12 @@ public class ExtendedGHRequest extends GHRequest {
         return this;
     }
 
+    // TODO ORS: provide a reason for this change
     public PathProcessor getPathProcessor() {
         return this.pathProcessor;
     }
 
+    // TODO ORS: provide a reason for this change
     public void setPathProcessor(PathProcessor pathProcessor) {
         this.pathProcessor = pathProcessor;
     }

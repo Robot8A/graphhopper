@@ -91,31 +91,22 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
 
     private static final int MAX_U_TURN_DISTANCE = 35;
     protected GHLongArrayList times;
-    // ORS-GH MOD START
+    // ORS-GH MOD - additional field
+    // TODO ORS: is this still needed?
     private PathProcessor mPathProcessor = PathProcessor.DEFAULT;
 
-    // TODO: do we still need this?
-//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
-//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
-//                                 Translation tr, InstructionList ways, PathProcessor pathProcessor) {
-//        this(tmpNode,  graph,  weighting,  encoder,
-//                roundaboutEnc,  nodeAccess,
-//                tr,  ways, pathProcessor, null);
-//    }
-
-    // TODO: this was the signature change before
-//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
-//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
-//                                 Translation tr, InstructionList ways, GHLongArrayList times) {
-//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
-//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
-//                                 Translation tr, InstructionList ways, PathProcessor pathProcessor, GHLongArrayList times) {
-
+    // ORS-GH MOD - wrapper mimicking old signature
     public InstructionsFromEdges(Graph graph, Weighting weighting, EncodedValueLookup evLookup,
                                  InstructionList ways) {
-        // TODO: sig change required to allow following line
-//        mPathProcessor = pathProcessor;
-        // ORS-GH MOD END
+        this(graph, weighting, evLookup, ways, null);
+    }
+
+    // ORS-GH MOD - change signature to permit time dependent routing
+    //public InstructionsFromEdges(Graph graph, Weighting weighting, EncodedValueLookup evLookup,
+    //                             InstructionList ways) {
+    public InstructionsFromEdges(Graph graph, Weighting weighting, EncodedValueLookup evLookup,
+                                 InstructionList ways, GHLongArrayList times) {
+    // ORS-GH MOD END
         this.encoder = weighting.getFlagEncoder();
         this.weighting = weighting;
         this.accessEnc = evLookup.getBooleanEncodedValue(getKey(encoder.toString(), "access"));
@@ -143,6 +134,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
                 ways.add(new FinishInstruction(graph.getNodeAccess(), path.getEndNode()));
             } else {
                 path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways));
+                // TODO ORS: replace by path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways, times));
             }
         }
         return ways;

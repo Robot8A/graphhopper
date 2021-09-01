@@ -25,6 +25,7 @@ import com.graphhopper.reader.osm.OSMReader;
 import com.graphhopper.reader.osm.conditional.DateRangeParser;
 import com.graphhopper.routing.*;
 import com.graphhopper.routing.WeightingFactory;
+import com.graphhopper.routing.calt.CaltPreparationHandler;
 import com.graphhopper.routing.ch.CHPreparationHandler;
 import com.graphhopper.routing.ch.PrepareContractionHierarchies;
 import com.graphhopper.routing.ev.*;
@@ -107,9 +108,8 @@ public class GraphHopper implements GraphHopperAPI {
     // preparation handlers
     private final LMPreparationHandler lmPreparationHandler = new LMPreparationHandler();
     private final CHPreparationHandler chPreparationHandler = new CHPreparationHandler();
-    // ORS-GH MOD START
-    // TODO ORS: need a preparation handler for CALT as a replacement of the
-    // TODO ORS: RoutingAlgorithmFactoryDecorators
+    // ORS-GH MOD START - additional field to support CALT routing algorithm
+    private final CaltPreparationHandler caltPreparationHandler = new CaltPreparationHandler();
     // ORS-GH MOD END
 
     // for data reader
@@ -353,14 +353,13 @@ public class GraphHopper implements GraphHopperAPI {
         return this;
     }
 
-//    //ORS-GH MOD START
-//    // TODO ORS: provide reason for this change
-    @Deprecated // use RouterConfig instead
+    //ORS-GH MOD START
+    @Deprecated // TODO ORS: use RouterConfig instead
     public GraphHopper setSimplifyResponse(boolean doSimplify) {
         this.getRouterConfig().setSimplifyResponse(doSimplify);
         return this;
     }
-//ORS-GH MOD END
+    //ORS-GH MOD END
 
     public String getGraphHopperLocation() {
         return ghLocation;
@@ -437,7 +436,7 @@ public class GraphHopper implements GraphHopperAPI {
         return this;
     }
 
-    // ORS-GH MOD START
+    // ORS-GH MOD START - additional method
     // CALT
     // TODO ORS: Why does CALT need access to such a low-level detail?
     // TODO ORS: The lock does not exist anymore, maybe go through LockFacktory
@@ -785,7 +784,7 @@ public class GraphHopper implements GraphHopperAPI {
         }
 
         GHDirectory dir = new GHDirectory(ghLocation, dataAccessType);
-        // TODO: following lines have replaced the commented out lines below, need to see where this modification needs to go now
+        // TODO ORS: following lines have replaced the commented out lines below, need to see where this modification needs to go now
         ghStorage = new GraphHopperStorage(dir, encodingManager, hasElevation(), encodingManager.needsTurnCostsSupport(), defaultSegmentSize);
         checkProfilesConsistency();
 
@@ -802,7 +801,9 @@ public class GraphHopper implements GraphHopperAPI {
 
         ghStorage.addCHGraphs(chConfigs);
 
-//        //ORS-GH MOD START
+        // TODO ORS: add calt here
+
+//        //ORS-GH MOD START - TODO ORS: why is this mdification needed at all?
 //        if (graphStorageFactory != null) {
 //            ghStorage = graphStorageFactory.createStorage(dir, this);
 //        }
@@ -916,7 +917,7 @@ public class GraphHopper implements GraphHopperAPI {
         return chPreparationHandler;
     }
 
-    // TODO: this was renamed from initCHAlgoFactoryDecorator and we had changed access to public
+    // TODO ORS: this was renamed from initCHAlgoFactoryDecorator and we had changed access to public
     private void initCHPreparationHandler() {
         if (chPreparationHandler.hasCHConfigs()) {
             return;
@@ -936,7 +937,7 @@ public class GraphHopper implements GraphHopperAPI {
         return lmPreparationHandler;
     }
 
-    // TODO: this was renamed from initLMAlgoFactoryDecorator and we had changed access to public
+    // TODO ORS: this was renamed from initLMAlgoFactoryDecorator and we had changed access to public
     private void initLMPreparationHandler() {
         if (lmPreparationHandler.hasLMProfiles())
             return;
@@ -986,6 +987,7 @@ public class GraphHopper implements GraphHopperAPI {
         }
 
         // ORS-GH MOD START
+        // TODO ORS: provide a reason for this modification
         // TODO ORS: Bbox does not exist
         // BBox bb = ghStorage.getBounds();
         // ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
@@ -1010,6 +1012,8 @@ public class GraphHopper implements GraphHopperAPI {
         } else {
             prepareCH(closeEarly);
         }
+
+        // TODO ORS: insert Calt here
     }
 
     protected void importPublicTransit() {
@@ -1051,70 +1055,7 @@ public class GraphHopper implements GraphHopperAPI {
         return new DefaultWeightingFactory(ghStorage, getEncodingManager());
     }
 
-    // TODO: this has been moved, likely into the weighting factory, mods need to be moved there
-//    /**
-//     * Based on the hintsMap and the specified encoder a Weighting instance can be
-//     * created. Note that all URL parameters are available in the hintsMap as String if
-//     * you use the web module.
-//     *
-//     * @param hints all parameters influencing the weighting. E.g. parameters coming via
-//     *                 GHRequest.getHints or directly via "&amp;api.xy=" from the URL of the web UI
-//     * @param encoder  the required vehicle
-//     * @param graph    The Graph enables the Weighting for NodeAccess and more
-//     * @return the weighting to be used for route calculation
-//     * @see HintsMap
-//     */
-//    public Weighting createWeighting(HintsMap hints, FlagEncoder encoder, Graph graph) {
-//// ORS-GH MOD START
-//        TraversalMode tMode = encoder.supports(TurnWeighting.class) ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED;
-//        if (hints.has(Routing.EDGE_BASED))
-//            tMode = hints.getBool(Routing.EDGE_BASED, false) ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED;
-//
-//        if (tMode.isEdgeBased() && !encoder.supports(TurnWeighting.class)) {
-//            throw new IllegalArgumentException("You need a turn cost extension to make use of edge_based=true, e.g. use car|turn_costs=true");
-//        }
-//        if (weightingFactory != null) {
-//            return weightingFactory.createWeighting(hints, encoder, ghStorage);
-//        }
-//// ORS-GH MOD END
-//        String weightingStr = toLowerCase(hints.getWeighting());
-//        Weighting weighting = null;
-//
-//        if (encoder.supports(GenericWeighting.class)) {
-//            weighting = new GenericWeighting((DataFlagEncoder) encoder, hints);
-//        } else if ("shortest".equalsIgnoreCase(weightingStr)) {
-//            weighting = new ShortestWeighting(encoder);
-//        } else if ("fastest".equalsIgnoreCase(weightingStr) || weightingStr.isEmpty()) {
-//            if (encoder.supports(PriorityWeighting.class))
-//                weighting = new PriorityWeighting(encoder, hints);
-//            else
-//                weighting = new FastestWeighting(encoder, hints);
-//        } else if ("curvature".equalsIgnoreCase(weightingStr)) {
-//            if (encoder.supports(CurvatureWeighting.class))
-//                weighting = new CurvatureWeighting(encoder, hints);
-//
-//        } else if ("short_fastest".equalsIgnoreCase(weightingStr)) {
-//            weighting = new ShortFastestWeighting(encoder, hints);
-//        }
-//
-//        else if ("td_fastest".equalsIgnoreCase(weightingStr)) {
-//            weighting = new FastestWeighting(encoder, hints);
-//            if (encodingManager.hasEncodedValue(EncodingManager.getKey(encoder, ConditionalEdges.SPEED)))
-//                weighting.setSpeedCalculator(new ConditionalSpeedCalculator(weighting.getSpeedCalculator(), ghStorage, encoder));
-//        }
-//
-//        if (weighting == null)
-//            throw new IllegalArgumentException("weighting " + weightingStr + " not supported");
-//
-//        if (hints.has(Routing.BLOCK_AREA)) {
-//            String blockAreaStr = hints.get(Parameters.Routing.BLOCK_AREA, "");
-//            GraphEdgeIdFinder.BlockArea blockArea = new GraphEdgeIdFinder(graph, locationIndex).
-//                    parseBlockArea(blockAreaStr, DefaultEdgeFilter.allEdges(encoder), hints.getDouble("block_area.edge_id_max_area", 1000 * 1000));
-//            return new BlockAreaWeighting(weighting, blockArea);
-//        }
-//        return weighting;
-//    }
-//
+    // TODO ORS: this has been moved, likely into the weighting factory, mods need to be moved there
 //    /**
 //     * Potentially wraps the specified weighting into a TurnWeighting instance.
 //     */
@@ -1132,17 +1073,19 @@ public class GraphHopper implements GraphHopperAPI {
 //        }
 //        return weighting;
 //    }
-//
-//    /**
-//     * Potentially wraps the specified weighting into a TimeDependentAccessWeighting.
-//     */
-//    public Weighting createTimeDependentAccessWeighting(Weighting weighting, String algo) {
-//        FlagEncoder flagEncoder = weighting.getFlagEncoder();
-//        if (encodingManager.hasEncodedValue(EncodingManager.getKey(flagEncoder, ConditionalEdges.ACCESS)) && isAlgorithmTimeDependent(algo))
-//            return new TimeDependentAccessWeighting(weighting, ghStorage, flagEncoder);
-//        else
-//            return weighting;
-//    }
+
+    // ORS-GH MOD START - additional method
+    /**
+     * Potentially wraps the specified weighting into a TimeDependentAccessWeighting.
+     */
+    public Weighting createTimeDependentAccessWeighting(Weighting weighting, String algo) {
+        FlagEncoder flagEncoder = weighting.getFlagEncoder();
+        if (encodingManager.hasEncodedValue(EncodingManager.getKey(flagEncoder, ConditionalEdges.ACCESS)) && isAlgorithmTimeDependent(algo))
+            return new TimeDependentAccessWeighting(weighting, ghStorage, flagEncoder);
+        else
+            return weighting;
+    }
+    // ORS-GH MOD END
 
     private boolean isAlgorithmTimeDependent(String algo) {
         return ("td_dijkstra".equals(algo) || "td_astar".equals(algo)) ? true : false;
@@ -1186,7 +1129,7 @@ public class GraphHopper implements GraphHopperAPI {
         );
     }
 
-    // TODO: this code has been moved, likely into the Router class. Our mods need to go there as well.
+    // TODO ORS: this code has been moved, likely into the Router class. Our mods need to go there as well.
 //    /**
 //     * This method calculates the alternative path list using the low level Path objects.
 //     */

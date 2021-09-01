@@ -326,6 +326,14 @@ public class DistanceCalcEarth implements DistanceCalc {
             if (i > 0) {
                 if (pointList.is3D())
                     dist += calcDist3D(prevLat, prevLon, prevEle, pointList.getLat(i), pointList.getLon(i), pointList.getEle(i));
+                // TODO ORS: this mod has been in OSMReader before and is not easily transferred here
+//                    // ORS-GH MOD START - Allow overriding of using 3D calculations
+//                    if (calcDistance3D) {
+//                        towerNodeDistance += distCalc3D.calcDist(prevLat, prevLon, prevEle, lat, lon, ele);
+//                    } else {
+//                        towerNodeDistance += distCalc.calcDist(prevLat, prevLon, lat, lon);
+//                    }
+//                    // ORS-GH MOD END
                 else
                     dist += calcDist(prevLat, prevLon, pointList.getLat(i), pointList.getLon(i));
             }

@@ -37,8 +37,8 @@ public interface RoutingAlgorithm {
      */
     Path calcPath(int from, int to);
 
-    // ORS-GH MOD START: new method
-    // TODO ORS: provide reason for this change
+    // ORS-GH MOD START: additional method
+    // needed for time-dependent routing
     /**
      * Calculates the best path between the specified nodes at a given time.
      *
@@ -54,8 +54,8 @@ public interface RoutingAlgorithm {
      */
     List<Path> calcPaths(int from, int to);
 
-    // ORS-GH MOD START: new method
-    // TODO ORS: provide reason for this change
+    // ORS-GH MOD START: additional method
+    // needed for time-dependent routing
     List<Path> calcPaths(int from, int to, long at);
     // ORS-GH-MOD END
 

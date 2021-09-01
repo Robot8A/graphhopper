@@ -79,7 +79,7 @@ public class AlternativeRoute implements RoutingAlgorithm {
     private int maxPaths = 2;
     private WeightApproximator weightApproximator;
 
-    // ORS-GH MOD START
+    // ORS-GH MOD START - additional field
     // TODO ORS: provide a reason for this change
     private EdgeFilter additionalEdgeFilter;
     // ORS-GH MOD END

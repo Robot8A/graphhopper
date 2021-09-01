@@ -28,11 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// ORS-GH MOD START - additional imports
-import com.graphhopper.routing.util.DefaultPathProcessor;
-import com.graphhopper.routing.util.PathProcessor;
-// ORS-GH MOD END
-
 /**
  * This class represents the result of a shortest path calculation. It also provides methods to extract further
  * information about the found path, like instructions etc.
@@ -309,31 +304,6 @@ public class Path {
         });
         return points;
     }
-
-    // TODO ORS: where did this go?
-//    /**
-//     * @return the list of instructions for this path.
-//     */
-//    public InstructionList calcInstructions(BooleanEncodedValue roundaboutEnc, final Translation tr) {
-//        // ORS-GH MOD START
-//        return calcInstructions(roundaboutEnc, tr, PathProcessor.DEFAULT);
-//    }
-//    public InstructionList calcInstructions(BooleanEncodedValue roundaboutEnc, final Translation tr, PathProcessor pathProcessor) {
-//        // ORS-GH MOD END
-//        final InstructionList ways = new InstructionList(edgeIds.size() / 4, tr);
-//        if (edgeIds.isEmpty()) {
-//            if (isFound()) {
-//                ways.add(new FinishInstruction(nodeAccess, endNode));
-//            }
-//            return ways;
-//        }
-//        // ORS-GH MOD START
-////        forEveryEdge(new InstructionsFromEdges(getFromNode(), graph, weighting, encoder, roundaboutEnc, nodeAccess, tr, ways));
-//        forEveryEdge(new InstructionsFromEdges(getFromNode(), graph, weighting, encoder, roundaboutEnc, nodeAccess, tr, ways, pathProcessor, times));
-//        // ORS-GH MOD END
-//        return ways;
-//    }
-
 
     @Override
     public String toString() {

@@ -27,7 +27,7 @@ import com.carrotsearch.hppc.LongArrayList;
  */
 public class ReaderWay extends ReaderElement {
     // ORS-GH MOD START
-    // TODO ORS: why is this modification necessary?
+    // TODO ORS: provide a reason for this change
     // ORG CODE
     /*protected final LongArrayList nodes = new LongArrayList(5);
     public ReaderWay(long id) {

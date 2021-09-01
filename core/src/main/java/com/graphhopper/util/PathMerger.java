@@ -126,7 +126,7 @@ public class PathMerger {
             fullDistance += path.getDistance();
             fullWeight += path.getWeight();
             if (enableInstructions) {
-                // ORS-GH MOD START TODO: that's where it went, adjust this
+                // ORS-GH MOD START TODO ORS: that's where it went, adjust this
                 // GH orig: InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr);
                 // ORS orig: InstructionList il = path.calcInstructions(roundaboutEnc, tr, pathProcessor[ppIndex]);
                 InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr/*TODO ORS:, pathProcessor[ppIndex]*/);

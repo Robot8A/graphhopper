@@ -76,8 +76,8 @@ public abstract class ReaderElement {
         return tagTxt.toString();
     }
 
-    // ORS-GH MOD START
-    // TODO ORS: why is this modification necessary?
+    // ORS-GH MOD START - change access level
+    // Used in OSMReader mod to get node tags when processing edge edge
     //protected Map<String, Object> getTags()
     public Map<String, Object> getTags() {
     // ORS-GH MOD END

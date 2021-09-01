@@ -54,6 +54,7 @@ public interface Weighting {
     double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
     // ORS-GH MOD START - additional method
+    // needed for time-dependent routing
     double calcEdgeWeight(EdgeIteratorState edge, boolean reverse, long edgeEnterTime);
     // ORS-GH MOD END
 

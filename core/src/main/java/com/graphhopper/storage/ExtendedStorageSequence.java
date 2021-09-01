@@ -3,7 +3,8 @@ package com.graphhopper.storage;
 
 import java.util.ArrayList;
 
-// ORS-GH MOD - Modification by Maxim Rylov: Added a new class.
+// ORS-GH MOD - additional class
+// ORS TODO: provide reason for this change
 public class ExtendedStorageSequence  implements Storable<ExtendedStorageSequence> {
 
     private Storable[] extensions;
