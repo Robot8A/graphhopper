@@ -111,6 +111,14 @@ public class TDAStar extends AStar {
     }
 
     @Override
+    protected Path extractPath() {
+        if (currEdge == null || !finished())
+            return createEmptyPath();
+
+        return TDPathExtractor.extractPath(graph, weighting, currEdge, reverse);
+    }
+
+    @Override
     public String getName() {
         return Parameters.Algorithms.TD_ASTAR + "|" + weightApprox;
     }

@@ -32,6 +32,8 @@ import static com.graphhopper.util.EdgeIterator.NO_EDGE;
  *
  * @author Andrzej Oles
  */
+// TODO ORS: reimplement as PathExtractor
+/*
 public class PathTDCore extends PathBidirRef {
     private boolean switchFromAndToSPTEntry = false;
     private Graph routingGraph;
@@ -125,3 +127,4 @@ public class PathTDCore extends PathBidirRef {
         }, false);
     }
 }
+*/
