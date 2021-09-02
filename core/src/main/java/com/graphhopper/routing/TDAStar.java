@@ -17,7 +17,6 @@
  */
 package com.graphhopper.routing;
 
-import com.graphhopper.routing.util.AccessEdgeFilter;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
@@ -36,9 +35,6 @@ public class TDAStar extends AStar {
 
     public TDAStar(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
-
-        inEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.inEdges(flagEncoder));
-        outEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.outEdges(flagEncoder));
 
         if (!weighting.isTimeDependent())
             throw new RuntimeException("A time-dependent routing algorithm requires a time-dependent weighting.");
@@ -62,9 +58,7 @@ public class TDAStar extends AStar {
 
     private Path runAlgo() {
         double currWeightToGoal, estimationFullWeight;
-        EdgeExplorer explorer = reverse ? inEdgeExplorer : outEdgeExplorer;
         while (true) {
-            int currVertex = currEdge.adjNode;
             visitedNodes++;
             if (isMaxVisitedNodesExceeded())
                 return createEmptyPath();
@@ -72,29 +66,30 @@ public class TDAStar extends AStar {
             if (finished())
                 break;
 
-            EdgeIterator iter = explorer.setBaseNode(currVertex);
+            int currNode = currEdge.adjNode;
+            EdgeIterator iter = edgeExplorer.setBaseNode(currNode);
             while (iter.next()) {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double alreadyVisitedWeight = weighting.calcEdgeWeight(iter, reverse, currEdge.time) + currEdge.weightOfVisitedPath;
-                if (Double.isInfinite(alreadyVisitedWeight))
+                double tmpWeight = GHUtility.calcWeightWithTurnWeightWithAccess(weighting, iter, reverse, currEdge.edge, currEdge.time) + currEdge.weightOfVisitedPath;
+                if (Double.isInfinite(tmpWeight))
                     continue;
 
                 int traversalId = traversalMode.createTraversalId(iter, reverse);
                 AStarEntry ase = fromMap.get(traversalId);
-                if (ase == null || ase.weightOfVisitedPath > alreadyVisitedWeight) {
+                if (ase == null || ase.weightOfVisitedPath > tmpWeight) {
                     int neighborNode = iter.getAdjNode();
                     currWeightToGoal = weightApprox.approximate(neighborNode);
-                    estimationFullWeight = alreadyVisitedWeight + currWeightToGoal;
+                    estimationFullWeight = tmpWeight + currWeightToGoal;
                     if (ase == null) {
-                        ase = new AStarEntry(iter.getEdge(), neighborNode, estimationFullWeight, alreadyVisitedWeight);
+                        ase = new AStarEntry(iter.getEdge(), neighborNode, estimationFullWeight, tmpWeight);
                         fromMap.put(traversalId, ase);
                     } else {
                         fromHeap.remove(ase);
                         ase.edge = iter.getEdge();
                         ase.weight = estimationFullWeight;
-                        ase.weightOfVisitedPath = alreadyVisitedWeight;
+                        ase.weightOfVisitedPath = tmpWeight;
                     }
                     ase.time = currEdge.time + (reverse ? -1 : 1) * weighting.calcEdgeMillis(iter, reverse, currEdge.time);
                     ase.parent = currEdge;
@@ -113,12 +108,6 @@ public class TDAStar extends AStar {
         }
 
         return extractPath();
-    }
-
-    @Override
-    protected Path extractPath() {
-        return new PathTD(graph, weighting).setReverse(reverse).
-                setWeight(currEdge.weight).setSPTEntry(currEdge).extract();
     }
 
     @Override

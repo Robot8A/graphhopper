@@ -698,6 +698,12 @@ public class GHUtility {
     }
 
     public static double calcWeightWithTurnWeightWithAccess(Weighting weighting, EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
+// ORS-GH MOD START - overloaded method with additional argument for TD routing
+        return calcWeightWithTurnWeightWithAccess(weighting, edgeState, reverse, prevOrNextEdgeId, -1);
+    }
+
+    public static double calcWeightWithTurnWeightWithAccess(Weighting weighting, EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+// ORS-GH MOD END
         BooleanEncodedValue accessEnc = weighting.getFlagEncoder().getAccessEnc();
         if (edgeState.getBaseNode() == edgeState.getAdjNode()) {
             if (!edgeState.get(accessEnc) && !edgeState.getReverse(accessEnc))
@@ -705,7 +711,7 @@ public class GHUtility {
         } else if ((!reverse && !edgeState.get(accessEnc)) || (reverse && !edgeState.getReverse(accessEnc))) {
             return Double.POSITIVE_INFINITY;
         }
-        return calcWeightWithTurnWeight(weighting, edgeState, reverse, prevOrNextEdgeId);
+        return calcWeightWithTurnWeight(weighting, edgeState, reverse, prevOrNextEdgeId, edgeEnterTime);
     }
 
     /**
@@ -716,7 +722,13 @@ public class GHUtility {
      *                         has to be the next edgeId in the direction from start to end.
      */
     public static double calcWeightWithTurnWeight(Weighting weighting, EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId) {
-        final double edgeWeight = weighting.calcEdgeWeight(edgeState, reverse);
+// ORS-GH MOD START - overloaded method with additional argument for TD routing
+        return calcWeightWithTurnWeight(weighting, edgeState, reverse, prevOrNextEdgeId, -1);
+    }
+
+    public static double calcWeightWithTurnWeight(Weighting weighting, EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
+        final double edgeWeight = weighting.calcEdgeWeight(edgeState, reverse, edgeEnterTime);
+// ORS-GH MOD END
         if (!EdgeIterator.Edge.isValid(prevOrNextEdgeId)) {
             return edgeWeight;
         }

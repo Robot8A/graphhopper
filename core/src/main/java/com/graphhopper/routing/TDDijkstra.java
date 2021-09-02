@@ -17,13 +17,11 @@
  */
 package com.graphhopper.routing;
 
-import com.graphhopper.routing.util.AccessEdgeFilter;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
-import com.graphhopper.routing.SPTEntry;
-import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.GHUtility;
 import com.graphhopper.util.Parameters;
 
 /**
@@ -38,9 +36,6 @@ public class TDDijkstra extends Dijkstra {
 
     public TDDijkstra(Graph graph, Weighting weighting, TraversalMode tMode) {
         super(graph, weighting, tMode);
-
-        inEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.inEdges(flagEncoder));
-        outEdgeExplorer = graph.createEdgeExplorer(AccessEdgeFilter.outEdges(flagEncoder));
 
         if (!weighting.isTimeDependent())
             throw new RuntimeException("A time-dependent routing algorithm requires a time-dependent weighting.");
@@ -63,19 +58,18 @@ public class TDDijkstra extends Dijkstra {
 
     @Override
     protected void runAlgo() {
-        EdgeExplorer explorer = reverseDirection ? inEdgeExplorer : outEdgeExplorer;
         while (true) {
             visitedNodes++;
             if (isMaxVisitedNodesExceeded() || finished())
                 break;
 
-            int startNode = currEdge.adjNode;
-            EdgeIterator iter = explorer.setBaseNode(startNode);
+            int currNode = currEdge.adjNode;
+            EdgeIterator iter = edgeExplorer.setBaseNode(currNode);
             while (iter.next()) {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double tmpWeight = weighting.calcEdgeWeight(iter, reverseDirection, currEdge.time) + currEdge.weight;
+                double tmpWeight = GHUtility.calcWeightWithTurnWeightWithAccess(weighting, iter, reverseDirection, currEdge.edge, currEdge.time) + currEdge.weight;
                 if (Double.isInfinite(tmpWeight)) {
                     continue;
                 }
@@ -106,15 +100,6 @@ public class TDDijkstra extends Dijkstra {
             if (currEdge == null)
                 throw new AssertionError("Empty edge cannot happen");
         }
-    }
-
-    @Override
-    protected Path extractPath() {
-        if (currEdge == null || !finished())
-            return createEmptyPath();
-
-        return new PathTD(graph, weighting).setReverse(reverseDirection).
-                setWeight(currEdge.weight).setSPTEntry(currEdge).extract();
     }
 
     @Override
