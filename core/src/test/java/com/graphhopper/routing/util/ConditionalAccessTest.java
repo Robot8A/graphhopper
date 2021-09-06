@@ -22,7 +22,7 @@ import com.graphhopper.reader.osm.conditional.CalendarBasedTest;
 import com.graphhopper.reader.osm.conditional.ConditionalOSMTagInspector;
 import com.graphhopper.reader.osm.conditional.ConditionalParser;
 import com.graphhopper.reader.osm.conditional.DateRangeParser;
-import com.graphhopper.routing.profiles.*;
+import com.graphhopper.routing.ev.BooleanEncodedValue;
 import com.graphhopper.storage.*;
 import com.graphhopper.util.EdgeIteratorState;
 import org.junit.Test;
@@ -45,8 +45,8 @@ public class ConditionalAccessTest extends CalendarBasedTest {
 
     class TestFlagEncoder extends CarFlagEncoder {
         @Override
-        protected void init() {
-            super.init();
+        protected void init(DateRangeParser dateRangeParser) {
+            super.init(dateRangeParser); // TODO ORS: Where should the below DateRangeparser be injected?
             ConditionalOSMTagInspector conditionalTagInspector = new ConditionalOSMTagInspector(restrictions, restrictedValues, intendedValues);
             conditionalTagInspector.addValueParser(new DateRangeParser(getCalendar(2014, Calendar.APRIL, 10)));
             conditionalTagInspector.addValueParser(ConditionalParser.createDateTimeParser());
@@ -63,7 +63,7 @@ public class ConditionalAccessTest extends CalendarBasedTest {
     private EdgeIteratorState createEdge(ReaderWay way) {
         EncodingManager.AcceptWay acceptWay = new EncodingManager.AcceptWay();
         encodingManager.acceptWay(way, acceptWay);
-        IntsRef flags = encodingManager.handleWayTags(way, acceptWay , 0);
+        IntsRef flags = encodingManager.handleWayTags(way, acceptWay , IntsRef.EMPTY);
         EdgeIteratorState edge = graph.edge(0, 1).setFlags(flags);
         encodingManager.applyWayTags(way, edge);
         return edge;
@@ -108,7 +108,7 @@ public class ConditionalAccessTest extends CalendarBasedTest {
         way.setTag("access:conditional", CONDITIONAL);
         EncodingManager.AcceptWay acceptWay = new EncodingManager.AcceptWay();
         encodingManager.acceptWay(way, acceptWay);
-        IntsRef flags = encodingManager.handleWayTags(way, acceptWay , 0);
+        IntsRef flags = encodingManager.handleWayTags(way, acceptWay , IntsRef.EMPTY);
         EdgeIteratorState edge = graph.edge(0, 1).setFlags(flags);
         // store conditional
         List<EdgeIteratorState> createdEdges = new ArrayList<>();

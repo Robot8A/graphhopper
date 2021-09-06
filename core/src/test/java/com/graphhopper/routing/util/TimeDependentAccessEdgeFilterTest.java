@@ -60,7 +60,7 @@ public class TimeDependentAccessEdgeFilterTest {
         way.setTag("access:conditional", conditional);
         EncodingManager.AcceptWay acceptWay = new EncodingManager.AcceptWay();
         encodingManager.acceptWay(way, acceptWay);
-        IntsRef flags = encodingManager.handleWayTags(way, acceptWay , 0);
+        IntsRef flags = encodingManager.handleWayTags(way, acceptWay ,IntsRef.EMPTY);
         EdgeIteratorState edge = graph.edge(0, 1).setFlags(flags);
         // store conditional
         List<EdgeIteratorState> createdEdges = new ArrayList<>();

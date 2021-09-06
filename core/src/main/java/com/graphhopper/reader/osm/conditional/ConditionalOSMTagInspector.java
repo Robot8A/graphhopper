@@ -38,8 +38,10 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     // enabling by default makes noise but could improve OSM data
     private boolean enabledLogs;
 
+    // ORS-GH MOD START - additional fields
     private String val;
     private boolean isLazyEvaluated;
+    // ORS-GH MOD END
 
     @Override
     public String getTagValue() {
@@ -51,13 +53,9 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
         this(Arrays.asList(new DateRangeParser(value)), tagsToCheck, restrictiveValues, permittedValues, false);
     }
 
-    // TODO: constructor
-//    public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
-//        this(tagsToCheck, restrictiveValues, permittedValues, false);
-//    }
-
-    // public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues, boolean enabledLogs) {
-
+    public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
+        this(null, tagsToCheck, restrictiveValues, permittedValues, false);
+    }
 
     public ConditionalOSMTagInspector(List<? extends ConditionalValueParser> valueParsers, List<String> tagsToCheck,
                                       Set<String> restrictiveValues, Set<String> permittedValues, boolean enabledLogs) {
@@ -93,25 +91,42 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
         return applies(way, restrictiveParser);
     }
 
+    // ORS-GH MOD START - additional method
     @Override
     public boolean hasLazyEvaluatedConditions() {
         return isLazyEvaluated;
     }
+    // ORS-GH MOD END
 
-    protected boolean applies(ReaderWay way, ConditionalParser parser) {
+// ORS-GH MOD START
+// protected boolean applies(ReaderWay way, boolean checkPermissiveValues) {
+protected boolean applies(ReaderWay way, ConditionalParser parser) {
         isLazyEvaluated = false;
+// ORS-GH MOD END
         for (int index = 0; index < tagsToCheck.size(); index++) {
             String tagToCheck = tagsToCheck.get(index);
+            // ORS-GH MOD START
             val = way.getTag(tagToCheck);
+            // ORS-GH MOD END
             if (val == null || val.isEmpty())
                 continue;
+
             try {
+                // ORS-GH MOD START
+                //if (checkPermissiveValues) {
+                //    if (permitParser.checkCondition(val))
+                //        return true;
+                //} else {
+                //    if (restrictiveParser.checkCondition(val))
+                //        return true;
+                //}
                 ConditionalParser.Result result = parser.checkCondition(val);
                 isLazyEvaluated = result.isLazyEvaluated();
                 val = result.getRestrictions();
                 // allow the check result to be false but still have unevaluated conditions
                 if (result.isCheckPassed() || isLazyEvaluated)
                     return result.isCheckPassed();
+                // ORS-GH MOD END
             } catch (Exception e) {
                 if (enabledLogs) {
                     // log only if no date ala 21:00 as currently date and numbers do not support time precise restrictions
