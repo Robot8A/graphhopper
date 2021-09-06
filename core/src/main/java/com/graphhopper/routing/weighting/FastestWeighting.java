@@ -121,10 +121,12 @@ public class FastestWeighting extends AbstractWeighting {
         return val;
     }
 
+    // ORS-GH MOD START - additional method for TD routing
     @Override
     public boolean isTimeDependent() {
         return speedCalculator.isTimeDependent();
     }
+    // ORS-GH MOD END
 
     @Override
     public String getName() {

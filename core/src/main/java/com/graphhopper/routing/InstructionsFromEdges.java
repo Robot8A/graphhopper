@@ -133,8 +133,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
             if (path.getEdgeCount() == 0) {
                 ways.add(new FinishInstruction(graph.getNodeAccess(), path.getEndNode()));
             } else {
-                path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways));
-                // TODO ORS: replace by path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways, times));
+                path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways, path.times));
             }
         }
         return ways;

@@ -53,6 +53,7 @@ import com.graphhopper.util.Parameters.Landmark;
 import com.graphhopper.util.Parameters.Routing;
 import com.graphhopper.util.details.PathDetailsBuilderFactory;
 import com.graphhopper.util.exceptions.PointNotFoundException;
+import com.graphhopper.util.shapes.BBox;
 import com.graphhopper.util.shapes.GHPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -988,9 +989,8 @@ public class GraphHopper implements GraphHopperAPI {
 
         // ORS-GH MOD START
         // TODO ORS: provide a reason for this modification
-        // TODO ORS: Bbox does not exist
-        // BBox bb = ghStorage.getBounds();
-        // ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
+        BBox bb = ghStorage.getBounds();
+        ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
         // ORS-GH MOD END
 
         initLocationIndex();

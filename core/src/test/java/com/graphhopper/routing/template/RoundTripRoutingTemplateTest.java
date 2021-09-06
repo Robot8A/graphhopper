@@ -86,7 +86,7 @@
 //        LocationIndex locationIndex = new LocationIndexTree(g, new RAMDirectory()).prepareIndex();
 //        RoundTripRoutingTemplate routingTemplate =
 //                new RoundTripRoutingTemplate(ghRequest, new GHResponse(), locationIndex, em, 1);
-//        // ORS-GH MOD START
+//        // ORS-GH MOD START - TODO ORS: method moved to RoundTripRoutingTest
 //        routingTemplate.setEdgeFilter(DefaultEdgeFilter.allEdges(carFE));
 //        // ORS-GH MOD END
 //        List<QueryResult> stagePoints = routingTemplate.lookup(ghRequest.getPoints(), carFE);

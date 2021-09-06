@@ -48,7 +48,7 @@ public class Path {
     // ORS-GH MOD END
     private long time;
     // ORS-GH MOD START: new field
-    protected GHLongArrayList times;
+    protected GHLongArrayList times = new GHLongArrayList();
     // ORS-GH MOD END
     private IntArrayList edgeIds = new IntArrayList();
     private int fromNode = -1;

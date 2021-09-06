@@ -1,6 +1,3 @@
-// TODO ORS: GraphExtension has been removed from GH. Maybe re-implement this
-// TODO ORS: as a storage and set it up in BaseGraph similar to
-// TODO ORS: TurnCostStorage (previously TurnCostExtension)
 package com.graphhopper.storage;
 
 import com.graphhopper.routing.util.*;

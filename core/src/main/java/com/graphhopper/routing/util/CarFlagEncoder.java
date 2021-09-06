@@ -163,6 +163,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
     }
 
     // ORS-GH MOD START - override parent
+    // TODO ORS: provide a reason for this modification
     @Override
     protected void init(DateRangeParser dateRangeParser) {
         super.init(dateRangeParser);

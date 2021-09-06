@@ -403,14 +403,6 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation {
         return chConfig;
     }
 
-    // ORS-GH MOD START ADDED (exposed prepareWeighting)
-    // TODO ORS: prepareWeighting does not exist anymore
-    //public Weighting getPrepareWeighting() {
-    //    return prepareWeighting;
-    //}
-    // ORS-GH MOD END
-
-
     private String getTimesAsString() {
         float totalTime = allSW.getCurrentSeconds();
         float periodicUpdateTime = periodicUpdateSW.getCurrentSeconds();

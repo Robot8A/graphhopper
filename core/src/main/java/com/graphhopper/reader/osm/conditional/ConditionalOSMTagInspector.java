@@ -54,7 +54,7 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     }
 
     public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
-        this(null, tagsToCheck, restrictiveValues, permittedValues, false);
+        this(Arrays.asList(), tagsToCheck, restrictiveValues, permittedValues, false);
     }
 
     public ConditionalOSMTagInspector(List<? extends ConditionalValueParser> valueParsers, List<String> tagsToCheck,

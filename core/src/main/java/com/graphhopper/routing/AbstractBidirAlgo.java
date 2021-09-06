@@ -105,17 +105,14 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
         return extractPath();
     }
 
-    // ORS-GH MOD START: additional method
-    // TODO ORS: provide reason for this change
+    // ORS-GH MOD START: additional method for TD routing
     @Override
     public Path calcPath(int from, int to, long at) {
-        // TODO ORS: implement cleanly
         throw new RuntimeException("Dummy implementation to make ORS-GH compile");
     }
     // ORS-GH-MOD END
 
-    // ORS-GH MOD START: additional method
-    // TODO ORS: provide reason for this change
+    // ORS-GH MOD START: additional method for TD routing
     @Override
     public List<Path> calcPaths(int from, int to, long at) {
         // TODO ORS: implement cleanly
