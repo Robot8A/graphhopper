@@ -84,7 +84,7 @@
         <!-- ORS-GH MOD<module>map-matching</module> -->
         <!-- ORS-GH MOD<module>web-bundle</module> -->
         <module>api</module>
-        <!-- ORS-GH MOD<module>web-api</module> -->
+        <module>web-api</module>
         <!-- ORS-GH MOD<module>web</module> -->
         <!-- ORS-GH MOD<module>client-hc</module> -->
         <!-- ORS-GH MOD<module>navigation</module> -->
