@@ -20,23 +20,19 @@ public class ConditionalEdges implements Storable<ConditionalEdges> {
     public static final String ACCESS = "conditional_access";
     public static final String SPEED = "conditional_speed";
 
-    public ConditionalEdges(EncodingManager encodingManager, String encoderName) {
+    public ConditionalEdges(EncodingManager encodingManager, String encoderName, Directory dir) {
         this.encodingManager = encodingManager;
         this.encoderName = encoderName;
-    }
-
-    // TODO ORS: How to deal with @Override
-    public void init(Graph graph, Directory dir) {
         if (this.conditionalIndex != null || !conditionalEdgesMaps.isEmpty())
             throw new AssertionError("The conditional restrictions storage must be initialized only once.");
 
-        this.conditionalIndex = new ConditionalIndex(dir, encoderName);
+        this.conditionalIndex = new ConditionalIndex(dir, this.encoderName);
 
-        for (FlagEncoder encoder : encodingManager.fetchEdgeEncoders()) {
-            String name = encodingManager.getKey(encoder, encoderName);
-            if (encodingManager.hasEncodedValue(name)) {
-                ConditionalEdgesMap conditionalEdgesMap = new ConditionalEdgesMap(encoderName + "_" + encoder.toString(), conditionalIndex);
-                conditionalEdgesMap.init(graph, dir);
+        for (FlagEncoder encoder : this.encodingManager.fetchEdgeEncoders()) {
+            String name = this.encodingManager.getKey(encoder, this.encoderName);
+            if (this.encodingManager.hasEncodedValue(name)) {
+                String mapName = this.encoderName + "_" + encoder.toString();
+                ConditionalEdgesMap conditionalEdgesMap = new ConditionalEdgesMap(mapName, conditionalIndex, dir.find(mapName));
                 conditionalEdgesMaps.put(encoder.toString(), conditionalEdgesMap);
             }
         }

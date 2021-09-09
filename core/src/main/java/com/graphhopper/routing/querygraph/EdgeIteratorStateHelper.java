@@ -6,6 +6,10 @@ import com.graphhopper.util.EdgeIteratorState;
 
 // ORS-GH MOD START - NEW CLASS
 // TODO ORS: provide a reason for this change
+// TODO ORS: this is the same thing as EdgeKeys
+// TODO ORS: if the modifications around originalEdge are needed,
+//           move this method into EdgeIteratorState or a parent
+//           class and use polymorphism.
 public class EdgeIteratorStateHelper {
 
     public static int getOriginalEdge(EdgeIteratorState inst) {

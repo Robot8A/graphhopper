@@ -1,6 +1,6 @@
-// TODO ORS: GraphExtension has been removed from GH. Maybe re-implement this
-// TODO ORS: as a storage and set it up in BaseGraph similar to
-// TODO ORS: TurnCostStorage (previously TurnCostExtension)
+// TODO ORS: GraphExtension has been removed from GH. Should we move this
+// TODO ORS: re-implementation as a storage into BaseGraph and set it up there
+// TODO ORS: similar to TurnCostStorage (previously TurnCostExtension)
 package com.graphhopper.storage;
 
 import com.graphhopper.search.ConditionalIndex;
@@ -30,7 +30,7 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
     ConditionalIndex conditionalIndex;
 
 
-    public ConditionalEdgesMap(String name, ConditionalIndex conditionalIndex) {
+    public ConditionalEdgesMap(String name, ConditionalIndex conditionalIndex, DataAccess edges) {
         this.name = name;
         this.conditionalIndex = conditionalIndex;
 
@@ -38,6 +38,7 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
         EF_CONDITION = nextBlockEntryIndex(EF_CONDITION_BYTES);
 
         edgesCount = 0;
+        this.edges = edges;
     }
 
     protected final int nextBlockEntryIndex(int size) {
@@ -92,7 +93,7 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
         return (index == null) ? "" : conditionalIndex.get((long) index);
     }
 
-    // TODO ORS how to deal with @Override
+    @Deprecated // TODO ORS: remove after upgrade
     public void init(Graph graph, Directory dir) {
         if (edgesCount > 0)
             throw new AssertionError("The conditional restrictions storage must be initialized only once.");
@@ -102,6 +103,8 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
 
     @Override
     public ConditionalEdgesMap create(long byteCount) {
+        if (edgesCount > 0)
+            throw new AssertionError("The conditional restrictions storage must be initialized only once.");
         edges.create(byteCount * edgeEntryBytes);
         return this;
     }

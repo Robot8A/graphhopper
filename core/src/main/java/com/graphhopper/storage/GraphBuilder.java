@@ -140,7 +140,7 @@ public class GraphBuilder {
         ghStorage.addCHGraphs(chConfigs);
         return ghStorage;
     }
-    // TODO: where does this mod have to go now?
+    // TODO ORS: where does this mod have to go now?
 //    public GraphHopperStorage build() {
 //        Directory dir = mmap ?
 //                new MMapDirectory(location) :

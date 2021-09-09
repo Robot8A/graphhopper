@@ -32,6 +32,7 @@ import com.graphhopper.util.EdgeIteratorState;
  * @see PrepareContractionHierarchies
  */
 // ORS-GH MOD START - this class has been heavily refactored an modified to accommodate for time-dependent routing
+@Deprecated // TODO ORS: Class removed from GH. Where to apply the mods?
 public class PreparationWeighting extends AbstractAdjustedWeighting {
 
     public PreparationWeighting(Weighting superWeighting) {

@@ -80,7 +80,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final LongIndexedContainer barrierNodeIds = new LongArrayList();
     private final DistanceCalc distCalc = DistanceCalcEarth.DIST_EARTH;
     // ORS-GH MOD START - additional field
-    // TODO ORS: provide a reason for this modification
+    // TODO ORS: provide a reason for this modification (see getDistanceCalc below)
     private final DistanceCalc3D distCalc3D = new DistanceCalc3D();
     // ORS-GH MOD END
     private final DouglasPeucker simplifyAlgo = new DouglasPeucker();
@@ -120,6 +120,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     // ORS-GH MOD - new field
     // used to globally disable 3D calculations due to issues with
     // the distance values. See https://github.com/GIScience/openrouteservice/issues/725
+    // TODO ORS: instead of disabelling this globally, it should be a request parameter
     private boolean calcDistance3D = true;
 
     // ORS-GH MOD - Add variable for identifying which tags from nodes should be stored on their containing ways
@@ -547,28 +548,6 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
         }
     }
 
-    // TODO ORS: is this mod still required?
-//    public void processRelation(ReaderRelation relation) {
-//        if (relation.hasTag("type", "restriction")) {
-//            OSMTurnRelation turnRelation = createTurnRelation(relation);
-//            if (turnRelation != null) {
-//                //ORS-GH MOD START
-//                // ORG CODE
-//                //GraphExtension extendedStorage = graph.getExtension();
-//                GraphExtension extendedStorage = HelperORS.getTurnCostExtensions(graph.getExtension());
-//                //ORS-GH MOD END
-//                if (extendedStorage instanceof TurnCostExtension) {
-//                    TurnCostExtension tcs = (TurnCostExtension) extendedStorage;
-//                    Collection<TurnCostTableEntry> entries = analyzeTurnRelation(turnRelation);
-//                    for (TurnCostTableEntry entry : entries) {
-//                        tcs.addTurnInfo(entry.edgeFrom, entry.nodeVia, entry.edgeTo, entry.flags);
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-
     /**
      * @return OSM way ID from specified edgeId. Only previously stored OSM-way-IDs are returned in
      * order to reduce memory overhead.
@@ -588,7 +567,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     }
 
     // TODO remove this ugly stuff via better preprocessing phase! E.g. putting every tags etc into a helper file!
-    // ORS-GH MOD - expose method
+    // ORS-GH MOD - expose method for inheritance in ORS
     protected double getTmpLatitude(int id) {
         if (id == EMPTY_NODE)
             return Double.NaN;
@@ -605,7 +584,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
             return Double.NaN;
     }
 
-    // ORS-GH MOD - expose method
+    // ORS-GH MOD - expose method for inheritance in ORS
     protected double getTmpLongitude(int id) {
         if (id == EMPTY_NODE)
             return Double.NaN;
@@ -1179,6 +1158,9 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
 
     // ORS-GH MOD START - additional method
     // TODO ORS: provide a reason for this change
+    // TODO ORS: is this method useful at all? It is called in a single place
+    //           in ORS with use3D always false, i.e. never returns the
+    //           additional field distCalc3D.
     protected DistanceCalc getDistanceCalc(boolean use3D) {
         if (use3D)
             return distCalc3D;

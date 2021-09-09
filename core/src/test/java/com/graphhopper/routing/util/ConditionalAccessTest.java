@@ -38,7 +38,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Andrzej Oles
  */
-@Ignore // TODO ORS: setup test properly
 public class ConditionalAccessTest extends CalendarBasedTest {
     private static final String CONDITIONAL = "no @ (Mar 15-Jun 15)";
     private final CarFlagEncoder encoder = new TestFlagEncoder();
@@ -48,11 +47,10 @@ public class ConditionalAccessTest extends CalendarBasedTest {
     class TestFlagEncoder extends CarFlagEncoder {
         @Override
         protected void init(DateRangeParser dateRangeParser) {
-            super.init(dateRangeParser); // TODO ORS: Commented out code causes run-time errors
-            //ConditionalOSMTagInspector conditionalTagInspector = new ConditionalOSMTagInspector(restrictions, restrictedValues, intendedValues);
-            //conditionalTagInspector.addValueParser(new DateRangeParser(getCalendar(2014, Calendar.APRIL, 10)));
-            //conditionalTagInspector.addValueParser(ConditionalParser.createDateTimeParser());
-            //setConditionalTagInspector(conditionalTagInspector);
+            super.init(dateRangeParser);
+            ConditionalOSMTagInspector conditionalTagInspector = (ConditionalOSMTagInspector) encoder.getConditionalTagInspector();
+            conditionalTagInspector.addValueParser(new DateRangeParser(getCalendar(2014, Calendar.APRIL, 10)));
+            conditionalTagInspector.addValueParser(ConditionalParser.createDateTimeParser());
         }
     }
 

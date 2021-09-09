@@ -119,7 +119,7 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
             }
         };
 
-    // TODO: find out how extendedStorage os handled now...
+    // TODO ORS: find out how extendedStorage os handled now...
 //// ORS-GH MOD START
 //        ArrayList<GraphExtension> graphExtensions = new ArrayList<>();
 //
@@ -131,15 +131,15 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
 //            graphExtensions.add(extendedStorage);
 //        }
 //
-//        if (encodingManager.hasConditionalAccess()) {
-//            this.conditionalAccess = new ConditionalEdges(encodingManager, ConditionalEdges.ACCESS);
+        if (encodingManager.hasConditionalAccess()) {
+            this.conditionalAccess = new ConditionalEdges(encodingManager, ConditionalEdges.ACCESS, dir);
 //            graphExtensions.add(conditionalAccess);
-//        }
-//
-//        if (encodingManager.hasConditionalSpeed()) {
-//            this.conditionalSpeed = new ConditionalEdges(encodingManager, ConditionalEdges.SPEED);
+        }
+
+        if (encodingManager.hasConditionalSpeed()) {
+            this.conditionalSpeed = new ConditionalEdges(encodingManager, ConditionalEdges.SPEED, dir);
 //            graphExtensions.add(conditionalSpeed);
-//        }
+        }
 //
 //        extendedStorage = new ExtendedStorageSequence(graphExtensions);
 //// ORS-GH MOD END
@@ -297,6 +297,16 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
 
         baseGraph.create(initSize);
 
+        // ORS-GH MOD START - create conditional storages
+        // TODO ORS: Find out byteCount to create these
+        if (conditionalAccess != null) {
+            conditionalAccess.create(initSize);
+        }
+        if (conditionalSpeed != null) {
+            conditionalSpeed.create(initSize);
+        }
+        // ORS-GH MOD END
+
         for (CHGraphImpl cg : chGraphs) {
             cg.create(byteCount);
         }
@@ -393,6 +403,15 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
     public void close() {
         properties.close();
         baseGraph.close();
+
+        // ORS-GH MOD START - additional code
+        if (conditionalAccess != null) {
+            conditionalAccess.close();
+        }
+        if (conditionalSpeed != null) {
+            conditionalSpeed.close();
+        }
+        // ORS-GH MOD END
 
         for (CHGraphImpl cg : chGraphs) {
             if (!cg.isClosed())

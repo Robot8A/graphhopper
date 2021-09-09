@@ -21,6 +21,7 @@ package com.graphhopper.routing.querygraph;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.GHUtility;
 // ORS-GH MOD START - additional class
+// TODO ORS: this is the same thing as EdgeIteratorStateHelper
 public class EdgeKeys {
 
     public static int getOriginalEdge(EdgeIteratorState inst){

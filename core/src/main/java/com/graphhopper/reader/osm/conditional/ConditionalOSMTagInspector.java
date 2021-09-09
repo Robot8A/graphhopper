@@ -113,6 +113,7 @@ protected boolean applies(ReaderWay way, ConditionalParser parser) {
 
             try {
                 // ORS-GH MOD START
+                // GH orig:
                 //if (checkPermissiveValues) {
                 //    if (permitParser.checkCondition(val))
                 //        return true;

@@ -437,16 +437,6 @@ public class GraphHopper implements GraphHopperAPI {
         return this;
     }
 
-    // ORS-GH MOD START - additional method
-    // CALT
-    // TODO ORS: Why does CALT need access to such a low-level detail?
-    // TODO ORS: The lock does not exist anymore, maybe go through LockFacktory
-    // TODO ORS: if this is necessary at all.
-    //public ReadWriteLock getReadWriteLock() {
-    //    return readWriteLock;
-    //}
-    // ORS-GH MOD END
-
     public boolean isAllowWrites() {
         return allowWrites;
     }
@@ -804,7 +794,7 @@ public class GraphHopper implements GraphHopperAPI {
 
         // TODO ORS: add calt here
 
-//        //ORS-GH MOD START - TODO ORS: why is this mdification needed at all?
+//        //ORS-GH MOD START - TODO ORS: why is this modification needed at all?
 //        if (graphStorageFactory != null) {
 //            ghStorage = graphStorageFactory.createStorage(dir, this);
 //        }
@@ -988,7 +978,7 @@ public class GraphHopper implements GraphHopperAPI {
         }
 
         // ORS-GH MOD START
-        // TODO ORS: provide a reason for this modification
+        // needed for TD routing
         BBox bb = ghStorage.getBounds();
         ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
         // ORS-GH MOD END

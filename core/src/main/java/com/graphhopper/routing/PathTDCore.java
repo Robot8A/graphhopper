@@ -32,7 +32,7 @@ import static com.graphhopper.util.EdgeIterator.NO_EDGE;
  *
  * @author Andrzej Oles
  */
-// TODO ORS: reimplement as PathExtractor
+// TODO ORS: Is this already coverd by TDPathExtractor? Otherwise, reimplement as PathExtractor
 /*
 public class PathTDCore extends PathBidirRef {
     private boolean switchFromAndToSPTEntry = false;

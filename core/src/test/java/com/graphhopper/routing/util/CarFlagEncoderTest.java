@@ -122,7 +122,8 @@ public class CarFlagEncoderTest {
         way.clearTags();
         way.setTag("highway", "road");
         way.setTag("access:conditional", "no @ (" + simpleDateFormat.format(new Date().getTime()) + ")");
-        // ORS-GH MOD START - TODO ORS: the following mod is commented out due to a test failure
+        // ORS-GH MOD START
+        // TODO ORS: the following mod is commented out due to a test failure. Should conditionals be tested seperately?
 	    assertTrue(encoder.getAccess(way).canSkip());
         // ORS mod: assertTrue(encoder.getAccess(way).isConditional());
 	    // ORS-GH MOD END
@@ -131,7 +132,8 @@ public class CarFlagEncoderTest {
         way.setTag("highway", "road");
         way.setTag("access", "no");
         way.setTag("access:conditional", "yes @ (" + simpleDateFormat.format(new Date().getTime()) + ")");
-        // ORS-GH MOD START - TODO ORS: the following mod is commented out due to a test failure
+        // ORS-GH MOD START
+        // TODO ORS: the following mod is commented out due to a test failure. Should conditionals be tested seperately?
 	    assertTrue(encoder.getAccess(way).isWay());
         // ORS mod: assertTrue(encoder.getAccess(way).isConditional());
 	    // ORS-GH MOD END
