@@ -104,14 +104,20 @@ public class FastestWeighting extends AbstractWeighting {
     }
 
     @Override
+    // ORS-GH MOD START
+    //public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
     public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
+    // ORS-GH MOD END
         // TODO move this to AbstractWeighting? see #485
         long time = 0;
         boolean unfavoredEdge = edgeState.get(EdgeIteratorState.UNFAVORED_EDGE);
         if (unfavoredEdge)
             time += headingPenaltyMillis;
 
+        // ORS-GH MOD START
+        //return time + super.calcEdgeMillis(edgeState, reverse);
         return time + super.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
+        // ORS-GH MOD END
     }
 
     static double checkBounds(String key, double val, double from, double to) {

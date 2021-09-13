@@ -64,10 +64,10 @@ public interface Weighting {
      */
     long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse);
 
-    // ORS-GH MOD START
+    // ORS-GH MOD START - additional method
+    // needed for time dependent routing
     long calcEdgeMillis(EdgeIteratorState edge, boolean reverse, long edgeEnterTime);
     // ORS-GH MOD END
-
 
     double calcTurnWeight(int inEdge, int viaNode, int outEdge);
 

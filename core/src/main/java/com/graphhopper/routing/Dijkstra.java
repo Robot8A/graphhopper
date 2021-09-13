@@ -41,8 +41,10 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
     protected IntObjectMap<SPTEntry> fromMap;
     protected PriorityQueue<SPTEntry> fromHeap;
     protected SPTEntry currEdge;
+    // ORS-GH MOD - private -> protected; used to inherit by time-dependent routing
     protected int visitedNodes;
     protected int to = -1;
+    // ORS-GH MOD END
 
     // ORS-GH MOD START Modification by Maxim Rylov: Added a new class variable used for computing isochrones.
     protected Boolean reverseDirection = false;
@@ -89,12 +91,12 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
                 if (!accept(iter, currEdge.edge))
                     continue;
 
-                double tmpWeight = GHUtility.calcWeightWithTurnWeightWithAccess(weighting, iter, reverseDirection, currEdge.edge) + currEdge.weight;
+                double tmpWeight = GHUtility.calcWeightWithTurnWeightWithAccess(weighting, iter, false, currEdge.edge) + currEdge.weight;
                 // ORS-GH MOD START
                 // REMOVED: causes test failure
                 // TODO ORS: investigate
                 // Modification by Maxim Rylov: use originalEdge as the previousEdgeId
-//                double tmpWeight = weighting.calcWeight(iter, reverseDirection, currEdge.originalEdge) + currEdge.weight;
+                //double tmpWeight = weighting.calcWeight(iter, reverseDirection, currEdge.originalEdge) + currEdge.weight;
                 // ORS-GH MOD END
                 if (Double.isInfinite(tmpWeight)) {
                     continue;

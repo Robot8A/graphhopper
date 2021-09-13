@@ -58,16 +58,13 @@ public abstract class AbstractWeighting implements Weighting {
         // ORS_GH MOD END
     }
 
-    // TODO ORS: probably not needed any more?
+    // ORS-gh MOD - additional method
+    // needed for time-dependent routing
     @Override
     public double calcEdgeWeight(EdgeIteratorState edge, boolean reverse, long edgeEnterTime) {
         return calcEdgeWeight(edge, reverse);
     }
-
-    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
-        return calcEdgeMillis(edgeState, reverse, -1);
-    }
-    // END TODO ORS
+    // ORS-GH MOD END
 
     /**
      * In most cases subclasses should only override this method to change the edge-weight. The turn cost handling
@@ -75,8 +72,17 @@ public abstract class AbstractWeighting implements Weighting {
      */
     public abstract double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse);
 
+    // ORS-GH MOD START - modifications for time-dependent routing
+    // ORS-GH MOD - mimic old method signature
     @Override
+    public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
+        return calcEdgeMillis(edgeState, reverse, -1);
+    }
+
+    // ORS-GH MOD - add parameter to method signature
+    // GH orig: public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse) {
     public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
+        // ORS-GH MOD END
         // special case for loop edges: since they do not have a meaningful direction we always need to read them in
         // forward direction
         if (edgeState.getBaseNode() == edgeState.getAdjNode()) {
@@ -89,7 +95,10 @@ public abstract class AbstractWeighting implements Weighting {
                     + edgeState.fetchWayGeometry(FetchMode.ALL) + ", dist: " + edgeState.getDistance() + " "
                     + "Reverse:" + reverse + ", fwd:" + edgeState.get(accessEnc) + ", bwd:" + edgeState.getReverse(accessEnc) + ", fwd-speed: " + edgeState.get(avSpeedEnc) + ", bwd-speed: " + edgeState.getReverse(avSpeedEnc));
 
+        // ORS-GH MOD START
+        //double speed = reverse ? edgeState.getReverse(avSpeedEnc) : edgeState.get(avSpeedEnc);
         double speed = speedCalculator.getSpeed(edgeState, reverse, edgeEnterTime);
+        // ORS-GH MOD END
         if (Double.isInfinite(speed) || Double.isNaN(speed) || speed < 0)
             throw new IllegalStateException("Invalid speed stored in edge! " + speed);
         if (speed == 0)

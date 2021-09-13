@@ -52,7 +52,7 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
 
     @Override
     public double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
-        return superWeighting.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
+        return superWeighting.calcEdgeWeight(edgeState, reverse, edgeEnterTime);
     }
 
     @Override

@@ -847,7 +847,7 @@ public class RoutingAlgorithmTest {
             // ORS-GH MOD START - additional method for TD routing
             @Override
             public final double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
-                return tmpW.calcEdgeWeight(edgeState, reverse, edgeEnterTime);
+                return tmpW.calcEdgeWeight(edgeState, reverse);
             }
             // ORS-GH MOD END
 
@@ -859,7 +859,7 @@ public class RoutingAlgorithmTest {
             // ORS-GH MOD START - additional method for TD routing
             @Override
             public final long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
-                return tmpW.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
+                return tmpW.calcEdgeMillis(edgeState, reverse);
             }
             // ORS-GH MOD END
 
