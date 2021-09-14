@@ -38,6 +38,7 @@ import java.util.PriorityQueue;
  */
 public class AStar extends AbstractRoutingAlgorithm {
     // ORS-GH MOD START - change access level from private to protected
+    // TODO ORS: how to avoid this change?
     protected GHIntObjectHashMap<AStarEntry> fromMap;
     protected PriorityQueue<AStarEntry> fromHeap;
     protected AStarEntry currEdge;

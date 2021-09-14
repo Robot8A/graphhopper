@@ -97,7 +97,7 @@ public class Path {
         return endNode;
     }
 
-    protected Path setEndNode(int end) {
+    public Path setEndNode(int end) {
         endNode = end;
         return this;
     }

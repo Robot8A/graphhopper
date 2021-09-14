@@ -102,19 +102,23 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
      */
     protected abstract Path extractPath();
 
+    // ORS-GH MOD START - additional method
     @Override
     public Path calcPath(int from, int to, long at) {
         return calcPath(from, to);
     }
+    // ORS-GH MOD END
 
     @Override
     public List<Path> calcPaths(int from, int to) {
         return Collections.singletonList(calcPath(from, to));
     }
 
+    // ORS-GH MOD START - additional method
     public List<Path> calcPaths(int from, int to, long at) {
         return Collections.singletonList(calcPath(from, to, at));
     }
+    // ORS-GH MOD END
 
     protected Path createEmptyPath() {
         return new Path(graph);

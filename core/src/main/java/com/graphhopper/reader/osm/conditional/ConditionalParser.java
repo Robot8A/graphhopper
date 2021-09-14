@@ -39,24 +39,28 @@ import java.util.Set;
  */
 public class ConditionalParser {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Set<String> restrictedValues;
+    private final Set<String> restrictedTags;
     private final List<ConditionalValueParser> valueParsers = new ArrayList<>(5);
     private final boolean enabledLogs;
+    // ORS-GH MOD START - additional field
     private final String simpleValue;
+    // ORS-GH MOD END
 
-    public ConditionalParser(Set<String> restrictedValues) {
-        this(restrictedValues, false);
+    public ConditionalParser(Set<String> restrictedTags) {
+        this(restrictedTags, false);
     }
 
-    public ConditionalParser(Set<String> restrictedValues, boolean enabledLogs) {
+    public ConditionalParser(Set<String> restrictedTags, boolean enabledLogs) {
         // use map => key & type (date vs. double)
-        this.restrictedValues = restrictedValues;
+        this.restrictedTags = restrictedTags;
         this.enabledLogs = enabledLogs;
-        this.simpleValue = hasRestrictedValues() && restrictedValues.contains("yes") ? "yes" : "no";
+        // ORS-GH MOD - fill additional field
+        this.simpleValue = hasRestrictedValues() && restrictedTags.contains("yes") ? "yes" : "no";
     }
 
     public static ConditionalValueParser createNumberParser(final String assertKey, final Number obj) {
         return new ConditionalValueParser() {
+            // ORS-GH MOD START - additional method
             @Override
             public ConditionState checkCondition(Condition condition) throws ParseException {
                 if (condition.isExpression())
@@ -64,6 +68,8 @@ public class ConditionalParser {
                 else
                     return ConditionState.INVALID;
             }
+            // ORS-GH MOD END
+
             @Override
             public ConditionState checkCondition(String conditionalValue) throws ParseException {
                 int indexLT = conditionalValue.indexOf("<");
@@ -103,6 +109,7 @@ public class ConditionalParser {
         };
     }
 
+    // ORS-GH MOD START - additional method
     public static ConditionalValueParser createDateTimeParser() {
         return new ConditionalValueParser() {
             @Override
@@ -131,6 +138,7 @@ public class ConditionalParser {
             }
         };
     }
+    // ORS-GH MOD END
 
     /**
      * This method adds a new value parser. The one added last has a higher priority.
@@ -146,6 +154,8 @@ public class ConditionalParser {
         return this;
     }
 
+
+    // ORS-GH MOD START - additional code
     // attempt to parse the value with any of the registered parsers
     private ParsedCondition checkAtomicCondition(Condition condition, ParsedCondition parsedCondition) throws ParseException {
         parsedCondition.reset();
@@ -245,7 +255,40 @@ public class ConditionalParser {
         parsedCondition.setCheckPassed(checkPassed);
         return parsedCondition;
     }
+    // ORS-GH MOD END
 
+// ORS-GH MOD START- replace method
+//    public boolean checkCondition(String conditionalTag) throws ParseException {
+//        if (conditionalTag == null || conditionalTag.isEmpty() || !conditionalTag.contains("@"))
+//            return false;
+//
+//        if (conditionalTag.contains(";")) {
+//            if (enabledLogs)
+//                logger.warn("We do not support multiple conditions yet: " + conditionalTag);
+//            return false;
+//        }
+//
+//        String[] conditionalArr = conditionalTag.split("@");
+//
+//        if (conditionalArr.length != 2)
+//            throw new IllegalStateException("could not split this condition: " + conditionalTag);
+//
+//        String restrictiveValue = conditionalArr[0].trim();
+//        if (!restrictedTags.contains(restrictiveValue))
+//            return false;
+//
+//        String conditionalValue = conditionalArr[1];
+//        conditionalValue = conditionalValue.replace('(', ' ');
+//        conditionalValue = conditionalValue.replace(')', ' ');
+//        conditionalValue = conditionalValue.trim();
+//
+//        for (ConditionalValueParser valueParser : valueParsers) {
+//            ConditionalValueParser.ConditionState c = valueParser.checkCondition(conditionalValue);
+//            if (c.isValid())
+//                return c.isCheckPassed();
+//        }
+//        return false;
+//    }
 
     public Result checkCondition(String tagValue) throws ParseException {
         Result result = new Result();
@@ -266,7 +309,7 @@ public class ConditionalParser {
                 String restrictionValue = restriction.getValue();
 
                 if (hasRestrictedValues()) {
-                    if (restrictedValues.contains(restrictionValue))
+                    if (restrictedTags.contains(restrictionValue))
                         restrictionValue = simpleValue;
                     else
                         continue;
@@ -301,6 +344,7 @@ public class ConditionalParser {
 
         return result;
     }
+    // ORS-GH MOD END
 
     protected static double parseNumber(String str) {
         int untilIndex = str.length() - 1;
@@ -311,10 +355,13 @@ public class ConditionalParser {
         return Double.parseDouble(str.substring(0, untilIndex + 1));
     }
 
+    // ORS-GH MOD START - additional method
     private boolean hasRestrictedValues() {
-        return !( restrictedValues==null || restrictedValues.isEmpty() );
+        return !( restrictedTags ==null || restrictedTags.isEmpty() );
     }
+    // ORS-GH MOD END
 
+    // ORS-GH MOD START - additional class
     class Result {
         private boolean checkPassed;
         private boolean lazyEvaluated;
@@ -344,4 +391,5 @@ public class ConditionalParser {
             this.restrictions = restrictions;
         }
     }
+    // ORS-GH MOD END
 }

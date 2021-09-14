@@ -592,7 +592,6 @@ public class WrapperGraph implements Graph {
                         return this;
                     }
 
-
                     @Override
                     public EdgeIteratorState detach(boolean reverse) {
                         return current.detach(reverse);

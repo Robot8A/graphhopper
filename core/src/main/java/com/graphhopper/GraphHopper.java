@@ -158,7 +158,6 @@ public class GraphHopper implements GraphHopperAPI {
         return emBuilder;
     }
 
-    // TODO: signature change not required anymore, but need to adjust te code where this was used before
     public EncodingManager getEncodingManager() {
         if (encodingManager == null)
             throw new IllegalStateException("EncodingManager not yet build");

@@ -90,7 +90,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
     private String prevInstructionName;
 
     private static final int MAX_U_TURN_DISTANCE = 35;
-    protected GHLongArrayList times;
+    protected GHLongArrayList times; // ORS-GH MOD - additional field
     // ORS-GH MOD - additional field
     // TODO ORS: is this still needed?
     private PathProcessor mPathProcessor = PathProcessor.DEFAULT;
@@ -121,7 +121,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
         prevName = null;
         outEdgeExplorer = graph.createEdgeExplorer(AccessFilter.outEdges(encoder.getAccessEnc()));
         crossingExplorer = graph.createEdgeExplorer(AccessFilter.allEdges(encoder.getAccessEnc()));
-        this.times = times;
+        this.times = times; // ORS-GH MOD - fill additional field
     }
 
     /**
@@ -133,6 +133,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
             if (path.getEdgeCount() == 0) {
                 ways.add(new FinishInstruction(graph.getNodeAccess(), path.getEndNode()));
             } else {
+                // ORS-GH MOD - additional parameter
                 path.forEveryEdge(new InstructionsFromEdges(graph, weighting, evLookup, ways, path.times));
             }
         }
@@ -310,8 +311,10 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
             prevName = name;
         }
 
+        // ORS-GH MOD START - additional parameter
         long time = times.get(index);
         updatePointsAndInstruction(edge, wayGeo, time);
+        // ORS-GH MOD END
 
         if (wayGeo.getSize() <= 2) {
             doublePrevLat = prevLat;
@@ -460,6 +463,7 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
         return Instruction.IGNORE;
     }
 
+    // ORS-GH MOD - additional parameter
     private void updatePointsAndInstruction(EdgeIteratorState edge, PointList pl, long time) {
         // skip adjNode
         int len = pl.size() - 1;

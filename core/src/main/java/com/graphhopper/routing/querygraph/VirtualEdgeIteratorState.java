@@ -44,7 +44,7 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     private double distance;
     private IntsRef edgeFlags;
     private String name;
-    private String conditional;
+    private String conditional; // ORS-GH MOD - additional field
     // true if edge should be avoided as start/stop
     private boolean unfavored;
     private EdgeIteratorState reverseEdge;

@@ -39,20 +39,23 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     private boolean enabledLogs;
 
     // ORS-GH MOD START - additional fields
-    private String val;
+    private String val; // TODO ORS: giv a sensible name to this field
     private boolean isLazyEvaluated;
     // ORS-GH MOD END
 
+    // ORS-GH MOD START - additional method
     @Override
     public String getTagValue() {
         return val;
     }
+    // ORS-GH MOD END
 
     public ConditionalOSMTagInspector(Calendar value, List<String> tagsToCheck,
                                       Set<String> restrictiveValues, Set<String> permittedValues) {
         this(Arrays.asList(new DateRangeParser(value)), tagsToCheck, restrictiveValues, permittedValues, false);
     }
 
+    // TODO ORS: is this method still needed?
     public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
         this(Arrays.asList(), tagsToCheck, restrictiveValues, permittedValues, false);
     }
@@ -83,12 +86,12 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
 
     @Override
     public boolean isRestrictedWayConditionallyPermitted(ReaderWay way) {
-        return applies(way, permitParser);
+        return applies(way, permitParser); // ORS-GH MOD - change signature
     }
 
     @Override
     public boolean isPermittedWayConditionallyRestricted(ReaderWay way) {
-        return applies(way, restrictiveParser);
+        return applies(way, restrictiveParser); // ORS-GH MOD - change signature
     }
 
     // ORS-GH MOD START - additional method
@@ -98,14 +101,14 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     }
     // ORS-GH MOD END
 
-// ORS-GH MOD START
+// ORS-GH MOD START - change signature
 // protected boolean applies(ReaderWay way, boolean checkPermissiveValues) {
 protected boolean applies(ReaderWay way, ConditionalParser parser) {
         isLazyEvaluated = false;
 // ORS-GH MOD END
         for (int index = 0; index < tagsToCheck.size(); index++) {
             String tagToCheck = tagsToCheck.get(index);
-            // ORS-GH MOD START
+            // ORS-GH MOD START - move local variable into field
             val = way.getTag(tagToCheck);
             // ORS-GH MOD END
             if (val == null || val.isEmpty())

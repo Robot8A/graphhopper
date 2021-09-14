@@ -196,10 +196,12 @@ public class AlternativeRoute implements RoutingAlgorithm {
         return calcPaths(from, to).get(0);
     }
 
+    // ORS-GH MOD START - additional method
     @Override
     public Path calcPath(int from, int to, long at) {
         return calcPath(from, to);
     }
+    // ORS-GH MOD END
 
     @Override
     public List<Path> calcPaths(int from, int to) {
@@ -211,10 +213,12 @@ public class AlternativeRoute implements RoutingAlgorithm {
         return paths;
     }
 
+    // ORS-GH MOD START - additional method
     @Override
     public List<Path> calcPaths(int from, int to, long at) {
         return calcPaths(from, to);
     }
+    // ORS-GH MOD END
 
     @Override
     public String getName() {

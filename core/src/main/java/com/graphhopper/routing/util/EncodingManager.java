@@ -506,7 +506,7 @@ public class EncodingManager implements EncodedValueLookup {
         private Map<String, Access> accessMap;
         boolean hasAccepted = false;
         boolean isFerry = false;
-        boolean hasConditional = false;
+        boolean hasConditional = false; // ORS-GH MOD - additional field
 
         public AcceptWay() {
             this.accessMap = new HashMap<>(5);
@@ -526,8 +526,10 @@ public class EncodingManager implements EncodedValueLookup {
                 hasAccepted = true;
             if (access == Access.FERRY)
                 isFerry = true;
+            // ORS-GH MOD START - additional condition
             if (access.isConditional())
                 hasConditional = true;
+            // ORS-GH MOD END
             return this;
         }
 
@@ -549,6 +551,7 @@ public class EncodingManager implements EncodedValueLookup {
             return isFerry;
         }
 
+        // ORS-GH MOD START - additional methods
         public Access getAccess(String key) {
             return accessMap.get(key);
         }
@@ -556,10 +559,11 @@ public class EncodingManager implements EncodedValueLookup {
         public boolean hasConditional () {
             return hasConditional;
         }
+        // ORS-GH MOD END
     }
 
     public enum Access {
-        WAY, FERRY, OTHER, CAN_SKIP, PERMITTED, RESTRICTED;
+        WAY, FERRY, OTHER, CAN_SKIP, PERMITTED, RESTRICTED; // ORS-GH MOD - additional values
 
         public boolean isFerry() {
             return this.ordinal() == FERRY.ordinal();
@@ -577,6 +581,7 @@ public class EncodingManager implements EncodedValueLookup {
             return this.ordinal() == CAN_SKIP.ordinal();
         }
 
+        // ORS-GH MOD START - additional methods
         public boolean isPermitted() {
             return this.ordinal() == PERMITTED.ordinal();
         }
@@ -588,7 +593,7 @@ public class EncodingManager implements EncodedValueLookup {
         public boolean isConditional() {
             return isRestricted() || isPermitted();
         }
-
+        // ORS-GH MOD END
     }
 
     public IntsRef handleRelationTags(ReaderRelation relation, IntsRef relFlags) {
@@ -743,6 +748,7 @@ public class EncodingManager implements EncodedValueLookup {
         return false;
     }
 
+    // ORS-GH MOD START - additional methods
     public boolean hasConditionalAccess() {
         for (FlagEncoder encoder : edgeEncoders) {
             if (hasEncodedValue(getKey(encoder, ConditionalEdges.ACCESS)))
@@ -758,6 +764,7 @@ public class EncodingManager implements EncodedValueLookup {
         }
         return false;
     }
+    // ORS-GH MOD END
 
     public List<BooleanEncodedValue> getAccessEncFromNodeFlags(long importNodeFlags) {
         List<BooleanEncodedValue> list = new ArrayList<>(edgeEncoders.size());

@@ -119,7 +119,7 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
             }
         };
 
-    // TODO ORS: find out how extendedStorage os handled now...
+    // TODO ORS: find out how extendedStorage is handled now...
 //// ORS-GH MOD START
 //        ArrayList<GraphExtension> graphExtensions = new ArrayList<>();
 //

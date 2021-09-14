@@ -50,6 +50,7 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
         return superWeighting.calcEdgeMillis(edgeState, reverse);
     }
 
+    // ORS-GH MOD START - additional methods
     @Override
     public double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
         return superWeighting.calcEdgeWeight(edgeState, reverse, edgeEnterTime);
@@ -59,6 +60,7 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     public long calcEdgeMillis(EdgeIteratorState edgeState, boolean reverse, long edgeEnterTime) {
         return superWeighting.calcEdgeMillis(edgeState, reverse, edgeEnterTime);
     }
+    // ORS-GH MOD END
 
     @Override
     public double calcTurnWeight(int inEdge, int viaNode, int outEdge) {
@@ -88,6 +90,7 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
         return getName() + "|" + superWeighting.toString();
     }
 
+    // ORS-GH MOD START - additional methods
     @Override
     public boolean isTimeDependent() {
         return superWeighting.isTimeDependent();
@@ -102,4 +105,5 @@ public abstract class AbstractAdjustedWeighting implements Weighting {
     public void setSpeedCalculator(SpeedCalculator speedCalculator) {
         superWeighting.setSpeedCalculator(speedCalculator);
     }
+    // ORS-GH MOD END
 }

@@ -5,6 +5,7 @@ package com.graphhopper.routing.util;
  *
  * @author Andrzej Oles
  */
+// ORS-GH MOD START - additional class
 public abstract class AbstractAdjustedSpeedCalculator implements SpeedCalculator{
     protected final SpeedCalculator superSpeedCalculator;
 
@@ -19,3 +20,4 @@ public abstract class AbstractAdjustedSpeedCalculator implements SpeedCalculator
         return superSpeedCalculator.isTimeDependent();
     }
 }
+// ORS-GH MOD END

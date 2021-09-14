@@ -703,7 +703,7 @@ public class GHUtility {
     }
 
     public static double calcWeightWithTurnWeightWithAccess(Weighting weighting, EdgeIteratorState edgeState, boolean reverse, int prevOrNextEdgeId, long edgeEnterTime) {
-// ORS-GH MOD END
+
         BooleanEncodedValue accessEnc = weighting.getFlagEncoder().getAccessEnc();
         if (edgeState.getBaseNode() == edgeState.getAdjNode()) {
             if (!edgeState.get(accessEnc) && !edgeState.getReverse(accessEnc))
@@ -712,6 +712,7 @@ public class GHUtility {
             return Double.POSITIVE_INFINITY;
         }
         return calcWeightWithTurnWeight(weighting, edgeState, reverse, prevOrNextEdgeId, edgeEnterTime);
+// ORS-GH MOD END
     }
 
     /**

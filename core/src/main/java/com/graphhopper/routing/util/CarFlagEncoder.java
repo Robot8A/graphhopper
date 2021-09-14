@@ -286,6 +286,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
             if (speedTwoDirections)
                 setSpeed(true, edgeFlags, speed);
 
+            // ORS-GH MOD START - modify access from 'true' to 'access'
             boolean access = !accept.isRestricted();
             boolean isRoundabout = roundaboutEnc.getBool(false, edgeFlags);
             if (isOneway(way) || isRoundabout) {
@@ -297,6 +298,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
                 accessEnc.setBool(false, edgeFlags, access);
                 accessEnc.setBool(true, edgeFlags, access);
             }
+            // ORS-GH MOD END
 
             // ORS-GH MOD START -- additional code
             if (accept.isConditional())

@@ -251,7 +251,10 @@ abstract public class BikeCommonFlagEncoder extends AbstractFlagEncoder {
         if (way.hasTag("bicycle", intendedValues) ||
                 way.hasTag("bicycle", "dismount") ||
                 way.hasTag("highway", "cycleway"))
+            // ORS-GH MOD START - change return value
+            //return EncodingManager.Access.WAY;
             return isPermittedWayConditionallyRestricted(way);
+            // ORS-GH MOD END
 
         // accept only if explicitly tagged for bike usage
         if ("motorway".equals(highwayValue) || "motorway_link".equals(highwayValue) || "bridleway".equals(highwayValue))
@@ -310,8 +313,10 @@ abstract public class BikeCommonFlagEncoder extends AbstractFlagEncoder {
         if (!access.isFerry()) {
             wayTypeSpeed = applyMaxSpeed(way, wayTypeSpeed);
             handleSpeed(edgeFlags, way, wayTypeSpeed);
+	    // ORS-GH MOD START - additional condition
             if (access.isConditional())
                 conditionalEncoder.setBool(false, edgeFlags, true);
+            // ORS-GH MOD END
         } else {
             double ferrySpeed = ferrySpeedCalc.getSpeed(way);
             handleSpeed(edgeFlags, way, ferrySpeed);
