@@ -443,7 +443,7 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
     // ORS-GH MOD START
     // CALT add method
     // TODO ORS: need a different way to create the name, ideally without the
-    // TODO ORS: use of weightings
+    //           use of weightings
     public CHGraphImpl setShortcutsStorage(Weighting w, Directory dir, String suffix, boolean edgeBased){
         // ORS ORIGINAL: final String name = AbstractWeighting.weightingToFileName(w);
         // ORS temporal fix:

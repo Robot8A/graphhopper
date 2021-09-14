@@ -8,6 +8,7 @@ import com.graphhopper.util.shapes.GHPoint;
 import java.util.Collections;
 import java.util.List;
 
+// TODO ORS: this class seems not in use, can it be removed?
 public class ExtendedGHRequest extends GHRequest {
     private EdgeFilter edgeFilter;
     private PathProcessor pathProcessor;

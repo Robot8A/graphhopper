@@ -17,13 +17,14 @@
  */
 package com.graphhopper.reader.osm.conditional;
 
+import com.graphhopper.reader.ConditionalTagInspector;
 import com.graphhopper.reader.ReaderWay;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Robin Boldt
@@ -58,7 +59,7 @@ public class ConditionalOSMTagInspectorTest extends CalendarBasedTest {
     }
 
     private static ConditionalOSMTagInspector createConditionalOSMTagInspector() {
-        return new ConditionalOSMTagInspector(getSampleConditionalTags(), getSampleRestrictedValues(), getSamplePermissiveValues());
+        return new ConditionalOSMTagInspector(Arrays.asList(), getSampleConditionalTags(), getSampleRestrictedValues(), getSamplePermissiveValues(), false);
     }
 
     @Test

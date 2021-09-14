@@ -793,7 +793,7 @@ public class GraphHopper implements GraphHopperAPI {
 
         // TODO ORS: add calt here
 
-//        //ORS-GH MOD START - TODO ORS: why is this modification needed at all?
+//        //ORS-GH MOD START - Injection point for ORSGraphHopper
 //        if (graphStorageFactory != null) {
 //            ghStorage = graphStorageFactory.createStorage(dir, this);
 //        }

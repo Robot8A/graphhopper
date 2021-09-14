@@ -39,25 +39,20 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     private boolean enabledLogs;
 
     // ORS-GH MOD START - additional fields
-    private String val; // TODO ORS: give a sensible name to this field
+    private String tagValue;
     private boolean isLazyEvaluated;
     // ORS-GH MOD END
 
     // ORS-GH MOD START - additional method
     @Override
     public String getTagValue() {
-        return val;
+        return tagValue;
     }
     // ORS-GH MOD END
 
     public ConditionalOSMTagInspector(Calendar value, List<String> tagsToCheck,
                                       Set<String> restrictiveValues, Set<String> permittedValues) {
         this(Arrays.asList(new DateRangeParser(value)), tagsToCheck, restrictiveValues, permittedValues, false);
-    }
-
-    // TODO ORS: is this method still needed?
-    public ConditionalOSMTagInspector(List<String> tagsToCheck, Set<String> restrictiveValues, Set<String> permittedValues) {
-        this(Arrays.asList(), tagsToCheck, restrictiveValues, permittedValues, false);
     }
 
     public ConditionalOSMTagInspector(List<? extends ConditionalValueParser> valueParsers, List<String> tagsToCheck,
@@ -109,9 +104,9 @@ protected boolean applies(ReaderWay way, ConditionalParser parser) {
         for (int index = 0; index < tagsToCheck.size(); index++) {
             String tagToCheck = tagsToCheck.get(index);
             // ORS-GH MOD START - move local variable into field
-            val = way.getTag(tagToCheck);
+            tagValue = way.getTag(tagToCheck);
             // ORS-GH MOD END
-            if (val == null || val.isEmpty())
+            if (tagValue == null || tagValue.isEmpty())
                 continue;
 
             try {
@@ -124,9 +119,9 @@ protected boolean applies(ReaderWay way, ConditionalParser parser) {
                 //    if (restrictiveParser.checkCondition(val))
                 //        return true;
                 //}
-                ConditionalParser.Result result = parser.checkCondition(val);
+                ConditionalParser.Result result = parser.checkCondition(tagValue);
                 isLazyEvaluated = result.isLazyEvaluated();
-                val = result.getRestrictions();
+                tagValue = result.getRestrictions();
                 // allow the check result to be false but still have unevaluated conditions
                 if (result.isCheckPassed() || isLazyEvaluated)
                     return result.isCheckPassed();
@@ -134,8 +129,8 @@ protected boolean applies(ReaderWay way, ConditionalParser parser) {
             } catch (Exception e) {
                 if (enabledLogs) {
                     // log only if no date ala 21:00 as currently date and numbers do not support time precise restrictions
-                    if (!val.contains(":"))
-                        logger.warn("for way " + way.getId() + " could not parse the conditional value '" + val + "' of tag '" + tagToCheck + "'. Exception:" + e.getMessage());
+                    if (!tagValue.contains(":"))
+                        logger.warn("for way " + way.getId() + " could not parse the conditional value '" + tagValue + "' of tag '" + tagToCheck + "'. Exception:" + e.getMessage());
                 }
             }
         }

@@ -1,4 +1,6 @@
 // TODO ORS: this file has been removed from GH (after being renmed into CHWeighting)
+//           Where to apply the mods?
+
 
 /*
  *  Licensed to GraphHopper GmbH under one or more contributor
@@ -30,9 +32,10 @@ import com.graphhopper.util.EdgeIteratorState;
  *
  * @author Peter Karich
  * @see PrepareContractionHierarchies
+ * @deprecated Removed from GH; need to find new place for mods
  */
 // ORS-GH MOD START - this class has been heavily refactored an modified to accommodate for time-dependent routing
-@Deprecated // TODO ORS: Class removed from GH. Where to apply the mods?
+@Deprecated
 public class PreparationWeighting extends AbstractAdjustedWeighting {
 
     public PreparationWeighting(Weighting superWeighting) {

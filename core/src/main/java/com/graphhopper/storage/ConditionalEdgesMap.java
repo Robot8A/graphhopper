@@ -1,6 +1,6 @@
 // TODO ORS: GraphExtension has been removed from GH. Should we move this
 // TODO ORS: re-implementation as a storage into BaseGraph and set it up there
-// TODO ORS: similar to TurnCostStorage (previously TurnCostExtension)
+// TODO ORS: similar to TurnCostStorage (previously TurnCostExtension)?
 package com.graphhopper.storage;
 
 import com.graphhopper.search.ConditionalIndex;
