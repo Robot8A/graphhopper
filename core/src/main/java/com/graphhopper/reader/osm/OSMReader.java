@@ -118,9 +118,7 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final TurnCostStorage tcs;
 
     // ORS-GH MOD - new field
-    // used to globally disable 3D calculations due to issues with
-    // the distance values. See https://github.com/GIScience/openrouteservice/issues/725
-    // TODO ORS: instead of disabelling this globally, it should be a request parameter
+    // used to globally disable 3D calculations due to issues with the distance values.
     private boolean calcDistance3D = true;
 
     // ORS-GH MOD - Add variable for identifying which tags from nodes should be stored on their containing ways
@@ -1150,9 +1148,20 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     // ORS-GH MOD END
 
     // ORS-GH MOD START - additional method
-    // see calcDistance3D
+    // See https://github.com/GIScience/openrouteservice/issues/725
+    public void enforce2D() {
+        distCalc.enforce2D();
+    }
+
+    /**
+     * @deprecated use enforce2D instead.
+     */
+    @Deprecated // TODO ORS: remove after upgrade
     public void setCalcDistance3D(boolean use3D) {
         this.calcDistance3D = use3D;
+        if (!use3D) {
+            enforce2D();
+        }
     }
     // ORS-GH MOD END
 

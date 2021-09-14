@@ -313,7 +313,7 @@ public class FootFlagEncoder extends AbstractFlagEncoder {
      */
     @Override
     // ORS-GH MOD - change access level from package-private to public due to change in superclass
-    // TODO ORS: remove this outdated method
+    @Deprecated // TODO ORS: remove this outdated method
     public double getSpeed(boolean reverse, IntsRef edgeFlags) {
         double speed = super.getSpeed(reverse, edgeFlags);
         if (speed == getMaxSpeed()) {

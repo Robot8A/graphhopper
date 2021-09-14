@@ -34,8 +34,7 @@ public class GHResponse {
     private final List<ResponsePath> responsePaths = new ArrayList<>(5);
     private String debugInfo = "";
 
-    // ORS-GH MOD START
-    // TODO ORS: why is this change needed?
+    // ORS-GH MOD START - additional field used for extra info processing
     private final List<Object> objects = new ArrayList<>(1);
 
     public GHResponse addReturnObject(Object obj) {

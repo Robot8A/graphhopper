@@ -39,7 +39,7 @@ public class ConditionalOSMTagInspector implements ConditionalTagInspector {
     private boolean enabledLogs;
 
     // ORS-GH MOD START - additional fields
-    private String val; // TODO ORS: giv a sensible name to this field
+    private String val; // TODO ORS: give a sensible name to this field
     private boolean isLazyEvaluated;
     // ORS-GH MOD END
 
