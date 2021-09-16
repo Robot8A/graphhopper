@@ -79,10 +79,6 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private final NodeAccess nodeAccess;
     private final LongIndexedContainer barrierNodeIds = new LongArrayList();
     private final DistanceCalc distCalc = DistanceCalcEarth.DIST_EARTH;
-    // ORS-GH MOD START - additional field
-    // TODO ORS: provide a reason for this modification (see getDistanceCalc below)
-    private final DistanceCalc3D distCalc3D = new DistanceCalc3D();
-    // ORS-GH MOD END
     private final DouglasPeucker simplifyAlgo = new DouglasPeucker();
     private boolean smoothElevation = false;
     private double longEdgeSamplingDistance = 0;
@@ -116,10 +112,6 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     private Date osmDataDate;
     private final IntsRef tempRelFlags;
     private final TurnCostStorage tcs;
-
-    // ORS-GH MOD - new field
-    // used to globally disable 3D calculations due to issues with the distance values.
-    private boolean calcDistance3D = true;
 
     // ORS-GH MOD - Add variable for identifying which tags from nodes should be stored on their containing ways
     private Set<String> nodeTagsToStore = new HashSet<>();
@@ -1156,25 +1148,25 @@ public class OSMReader implements TurnCostParser.ExternalInternalMap {
     /**
      * @deprecated use enforce2D instead.
      */
-    @Deprecated // TODO ORS: remove after upgrade
+    @Deprecated // TODO ORS (minor): remove after upgrade
     public void setCalcDistance3D(boolean use3D) {
-        this.calcDistance3D = use3D;
         if (!use3D) {
             enforce2D();
         }
     }
     // ORS-GH MOD END
 
-    // ORS-GH MOD START - additional method
-    // TODO ORS: provide a reason for this change
-    // TODO ORS: is this method useful at all? It is called in a single place
-    //           in ORS with use3D always false, i.e. never returns the
-    //           additional field distCalc3D.
+    // ORS-GH MOD START - additional method used in OrsOsmReader()
+    protected DistanceCalc getDistanceCalc() {
+       return distCalc;
+    }
+
+    /**
+     * @deprecated use getDistanceCalc() instead
+     */
+    @Deprecated // TODO ORS (minor): remove this after upgrade
     protected DistanceCalc getDistanceCalc(boolean use3D) {
-        if (use3D)
-            return distCalc3D;
-        else
-            return distCalc;
+        return getDistanceCalc();
     }
     // ORS-GH MOD END
 

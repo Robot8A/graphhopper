@@ -298,10 +298,10 @@ class VirtualEdgeIterator implements EdgeIterator {
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    // TODO ORS: how to deal with @Override; is this still needed?
+    // TODO ORS (minor): how to deal with @Override; is this still needed?
     public long getTime() {
         // will be called only from PreparationWeighting and if isShortcut is true
-        return ((CHEdgeIteratorState) edges.get(current)).getTime();
+        return ((CHEdgeIteratorState) getCurrentEdge()).getTime();
     }
     // ORS-GH MOD END
 

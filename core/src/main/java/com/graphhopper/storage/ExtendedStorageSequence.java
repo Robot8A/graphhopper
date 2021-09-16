@@ -1,4 +1,3 @@
-// TODO ORS: Is this needed at all? If yes, re-implement without GraphExtension
 package com.graphhopper.storage;
 
 import java.util.ArrayList;
@@ -18,13 +17,6 @@ public class ExtendedStorageSequence  implements Storable<ExtendedStorageSequenc
     public Storable<Object>[] getExtensions() {
         return extensions;
     }
-
-    // TODO ORS: init is gone, how to deal with @Override
-    //public void init(Graph graph, Directory dir) {
-    //    for (int i = 0; i < numExtensions; i++) {
-    //        extensions[i].init(graph, dir);
-    //    }
-    //}
 
     @Override
     public ExtendedStorageSequence create(long initSize) {

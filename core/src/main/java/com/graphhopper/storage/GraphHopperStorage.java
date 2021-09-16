@@ -119,30 +119,15 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
             }
         };
 
-    // TODO ORS: find out how extendedStorage is handled now...
-//// ORS-GH MOD START
-//        ArrayList<GraphExtension> graphExtensions = new ArrayList<>();
-//
-//        if (extendedStorage instanceof ExtendedStorageSequence) {
-//            for (GraphExtension extension : ((ExtendedStorageSequence) extendedStorage).getExtensions())
-//                graphExtensions.add(extension);
-//        }
-//        else {
-//            graphExtensions.add(extendedStorage);
-//        }
-//
+        // ORS-GH MOD START - additional storages
         if (encodingManager.hasConditionalAccess()) {
             this.conditionalAccess = new ConditionalEdges(encodingManager, ConditionalEdges.ACCESS, dir);
-//            graphExtensions.add(conditionalAccess);
         }
 
         if (encodingManager.hasConditionalSpeed()) {
             this.conditionalSpeed = new ConditionalEdges(encodingManager, ConditionalEdges.SPEED, dir);
-//            graphExtensions.add(conditionalSpeed);
         }
-//
-//        extendedStorage = new ExtendedStorageSequence(graphExtensions);
-//// ORS-GH MOD END
+        // ORS-GH MOD END
 
         baseGraph = new BaseGraph(dir, encodingManager, withElevation, listener, withTurnCosts, segmentSize);
         chGraphs = new ArrayList<>();

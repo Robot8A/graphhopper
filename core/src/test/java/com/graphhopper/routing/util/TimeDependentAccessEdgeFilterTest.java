@@ -38,7 +38,7 @@ import static org.junit.Assert.*;
 /**
  * @author Andrzej Oles
  */
-// TODO ORS: These tests fail because DateRangeParser only parses date ranges and
+// TODO ORS (minor): These tests fail because DateRangeParser only parses date ranges and
 //           not time ranges. How did this work in the past?
 @Ignore
 public class TimeDependentAccessEdgeFilterTest {

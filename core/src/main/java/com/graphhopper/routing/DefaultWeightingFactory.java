@@ -67,7 +67,7 @@ public class DefaultWeightingFactory implements WeightingFactory {
             turnCostProvider = NO_TURN_COST_PROVIDER;
         }
         // TODO ORS: check what to do here
-//        // ORS-GH MOD START
+        // ORS-GH MOD START
 //        TraversalMode tMode = encoder.supports(TurnWeighting.class) ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED;
 //        if (hints.has(Routing.EDGE_BASED))
 //            tMode = hints.getBool(Routing.EDGE_BASED, false) ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED;

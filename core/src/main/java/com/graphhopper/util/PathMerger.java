@@ -64,7 +64,7 @@ public class PathMerger {
     }
 
     // ORS-GH MOD START
-    // TODO ORS: provide reason for this addition
+    // TODO ORS (minor): provide reason for this addition
     protected PathProcessor[] pathProcessor = {PathProcessor.DEFAULT};
 
     public PathMerger setPathProcessor(PathProcessor[] pathProcessor) {
@@ -126,7 +126,8 @@ public class PathMerger {
             fullDistance += path.getDistance();
             fullWeight += path.getWeight();
             if (enableInstructions) {
-                // ORS-GH MOD START TODO ORS: that's where it went, adjust this
+                // ORS-GH MOD START
+                // TODO ORS (major): integrate or re-implement pathprocessor
                 // GH orig: InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr);
                 // ORS orig: InstructionList il = path.calcInstructions(roundaboutEnc, tr, pathProcessor[ppIndex]);
                 InstructionList il = InstructionsFromEdges.calcInstructions(path, graph, weighting, evLookup, tr/*TODO ORS:, pathProcessor[ppIndex]*/);

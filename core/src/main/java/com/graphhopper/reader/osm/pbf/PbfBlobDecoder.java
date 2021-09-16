@@ -292,7 +292,7 @@ public class PbfBlobDecoder implements Runnable {
             Map<String, String> tags = buildTags(way.getKeysList(), way.getValsList(), fieldDecoder);
             // ORS-GH MOD START
             //ReaderWay osmWay = new ReaderWay(way.getId());
-            // TODO ORS: provide a reason for this change or remove it
+            // TODO ORS (minor): provide a reason for this change or remove it
             ReaderWay osmWay = new ReaderWay(way.getId(), way.getRefsList().size()); // Modification by Maxim Rylov:  Make use of a constructor with capacity parameter.
             // ORS-GH MOD END
             osmWay.setTags(tags);

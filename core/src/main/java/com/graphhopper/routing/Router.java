@@ -201,6 +201,9 @@ public class Router {
         RoundTripRouting.Params params = new RoundTripRouting.Params(request.getHints(), startHeading, routerConfig.getMaxRoundTripRetries());
         List<Snap> snaps = RoundTripRouting.lookup(request.getPoints(), solver.getSnapFilter(), locationIndex, params);
         ghRsp.addDebugInfo("idLookup:" + sw.stop().getSeconds() + "s");
+        // ORS-GH MOD START - additional code
+        checkMaxSearchDistances(request, ghRsp, snaps);
+        // ORS-GH MOD END
 
         QueryGraph queryGraph = QueryGraph.create(ghStorage, snaps);
         FlexiblePathCalculator pathCalculator = solver.createPathCalculator(queryGraph);
@@ -214,6 +217,21 @@ public class Router {
         return ghRsp;
     }
 
+    // ORS-GH MOD START - additional method
+    private void checkMaxSearchDistances(GHRequest request, GHResponse ghRsp, List<Snap> snaps) {
+        double[] radiuses = request.getMaxSearchDistances();
+        List<GHPoint> points = request.getPoints();
+        if (points.size() == snaps.size()) {
+            for (int placeIndex = 0; placeIndex < points.size(); placeIndex++) {
+                Snap qr = snaps.get(placeIndex);
+                if ((radiuses != null) && qr.isValid() && (qr.getQueryDistance() > radiuses[placeIndex]) && (radiuses[placeIndex] != -1.0)) {
+                    ghRsp.addError(new PointNotFoundException("Cannot find point " + placeIndex + ": " + points.get(placeIndex) + " within a radius of " + radiuses[placeIndex] + " meters.", placeIndex));
+                }
+            }
+        }
+    }
+    // ORS-GH MOD END
+
     protected GHResponse routeAlt(GHRequest request, Solver solver) {
         if (request.getPoints().size() > 2)
             throw new IllegalArgumentException("Currently alternative routes work only with start and end point. You tried to use: " + request.getPoints().size() + " points");
@@ -221,6 +239,9 @@ public class Router {
         StopWatch sw = new StopWatch().start();
         List<Snap> snaps = ViaRouting.lookup(encodingManager, request.getPoints(), solver.getSnapFilter(), locationIndex, request.getSnapPreventions(), request.getPointHints());
         ghRsp.addDebugInfo("idLookup:" + sw.stop().getSeconds() + "s");
+        // ORS-GH MOD START - additional code
+        checkMaxSearchDistances(request, ghRsp, snaps);
+        // ORS-GH MOD END
         QueryGraph queryGraph = QueryGraph.create(ghStorage, snaps);
         PathCalculator pathCalculator = solver.createPathCalculator(queryGraph);
         boolean passThrough = getPassThrough(request.getHints());
@@ -251,6 +272,9 @@ public class Router {
         StopWatch sw = new StopWatch().start();
         List<Snap> snaps = ViaRouting.lookup(encodingManager, request.getPoints(), solver.getSnapFilter(), locationIndex, request.getSnapPreventions(), request.getPointHints());
         ghRsp.addDebugInfo("idLookup:" + sw.stop().getSeconds() + "s");
+        // ORS-GH MOD START - additional code
+        checkMaxSearchDistances(request, ghRsp, snaps);
+        // ORS-GH MOD END
         // (base) query graph used to resolve headings, curbsides etc. this is not necessarily the same thing as
         // the (possibly implementation specific) query graph used by PathCalculator
         QueryGraph queryGraph = QueryGraph.create(ghStorage, snaps);
@@ -285,6 +309,9 @@ public class Router {
                 setDouglasPeucker(peucker).
                 setEnableInstructions(enableInstructions).
                 setPathDetailsBuilders(pathDetailsBuilderFactory, request.getPathDetails()).
+                // ORS MOD START - TODO ORS: where to get ppList from?
+                // setPathProcessor(ppList.toArray(new PathProcessor[]{})).
+                // ORS MOD END
                 setSimplifyResponse(routerConfig.isSimplifyResponse() && wayPointMaxDistance > 0);
 
         if (!request.getHeadings().isEmpty())
@@ -503,6 +530,9 @@ public class Router {
                     setTraversalMode(profile.isTurnCosts() ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED).
                     setMaxVisitedNodes(getMaxVisitedNodes(request.getHints())).
                     setHints(request.getHints());
+            // ORS-GH MOD START
+            // algoOpts.setEdgeFilter(edgeFilter); // TODO ORS: where get edgeFilter from?
+            // ORS MOD END
 
             // use A* for round trips
             if (ROUND_TRIP.equalsIgnoreCase(request.getAlgorithm())) {

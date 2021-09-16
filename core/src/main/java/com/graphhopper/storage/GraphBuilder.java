@@ -45,7 +45,7 @@ public class GraphBuilder {
     private List<CHConfig> chConfigs = new ArrayList<>();
     // ORS-GH MOD START
     // CALT add member
-    // ORS TODO: maybe use profiles instead
+    // TODO ORS: maybe use profiles instead
     private Weighting singleCoreWeighting;
     // ORS-GH MOD END
 

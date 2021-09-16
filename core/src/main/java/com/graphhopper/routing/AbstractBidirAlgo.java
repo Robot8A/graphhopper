@@ -231,48 +231,7 @@ public abstract class AbstractBidirAlgo implements BidirRoutingAlgorithm {
     protected abstract int getOtherNode(int edge, int node);
 
     protected int getIncomingEdge(SPTEntry entry) {
-        // ORS-GH MOD START
-        // use actual edge ID instead of virtual edge ID (passed to TurnWeighting as prevOrNextEdgeId
-
-        // TODO: The modification to fillEdges needs to go wherever this code went
-//        private void fillEdges(SPTEntry currEdge, PriorityQueue<SPTEntry> prioQueue,
-//                IntObjectMap<SPTEntry> bestWeightMap, EdgeExplorer explorer, boolean reverse) {
-//            EdgeIterator iter = explorer.setBaseNode(currEdge.adjNode);
-//            while (iter.next()) {
-//                if (!accept(iter, currEdge, reverse))
-//                    continue;
-//
-//                final double weight = calcWeight(iter, currEdge, reverse);
-//                if (Double.isInfinite(weight)) {
-//                    continue;
-//                }
-//                final int origEdgeId = getOrigEdgeId(iter, reverse);
-//                final int traversalId = getTraversalId(iter, origEdgeId, reverse);
-//                SPTEntry entry = bestWeightMap.get(traversalId);
-//                if (entry == null) {
-//                    entry = createEntry(iter, origEdgeId, weight, currEdge, reverse);
-//                    // ORS-GH MOD START
-//                    // store actual edge ID for use by getIncomingEdge
-//                    entry.originalEdge = EdgeIteratorStateHelper.getOriginalEdge(iter);
-//                    // ORS-GH MOD END
-//                    bestWeightMap.put(traversalId, entry);
-//                    prioQueue.add(entry);
-//                } else if (entry.getWeightOfVisitedPath() > weight) {
-//                    prioQueue.remove(entry);
-//                    updateEntry(entry, iter, origEdgeId, weight, currEdge, reverse);
-//                    prioQueue.add(entry);
-//                } else
-//                    continue;
-//
-//                if (updateBestPath)
-//                    updateBestPath(iter, entry, traversalId, reverse);
-//            }
-//        }
-        //  only then will the following two lines work
-        // if (weighting instanceof TurnWeighting && ((TurnWeighting) weighting).inORS)
-        //     return entry.originalEdge;
         return entry.edge;
-        // ORS-GH MOD END
     }
 
     abstract protected Path extractPath();

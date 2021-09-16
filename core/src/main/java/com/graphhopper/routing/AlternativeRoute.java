@@ -80,7 +80,7 @@ public class AlternativeRoute implements RoutingAlgorithm {
     private WeightApproximator weightApproximator;
 
     // ORS-GH MOD START - additional field
-    // TODO ORS: provide a reason for this change
+    // TODO ORS (minor): provide a reason for this change
     private EdgeFilter additionalEdgeFilter;
     // ORS-GH MOD END
 

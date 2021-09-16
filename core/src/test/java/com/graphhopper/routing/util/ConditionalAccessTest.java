@@ -85,7 +85,7 @@ public class ConditionalAccessTest extends CalendarBasedTest {
         assertTrue(createEdge(way).get(accessEnc));
     }
 
-    @Ignore // TODO ORS: parsing conditionals seems to fail
+    @Ignore // TODO ORS (minor): parsing conditionals seems to fail
     @Test
     public void isAccessConditional() {
         ReaderWay way = createWay();
@@ -94,7 +94,7 @@ public class ConditionalAccessTest extends CalendarBasedTest {
         assertTrue(encoder.getAccess(way).isConditional());
     }
 
-    @Ignore // TODO ORS: parsing conditionals seems to fail
+    @Ignore // TODO ORS (minor): parsing conditionals seems to fail
     @Test
     public void setConditionalBit() {
         ReaderWay way = createWay();

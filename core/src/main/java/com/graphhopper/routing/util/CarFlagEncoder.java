@@ -165,7 +165,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
     }
 
     // ORS-GH MOD START - override parent
-    // TODO ORS: provide a reason for this modification
+    // TODO ORS (minor): provide a reason for this modification
     //           Don't other profiles also need conditionals?
     @Override
     protected void init(DateRangeParser dateRangeParser) {

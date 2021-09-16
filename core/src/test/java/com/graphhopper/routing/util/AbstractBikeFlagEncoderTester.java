@@ -193,7 +193,7 @@ public abstract class AbstractBikeFlagEncoderTester {
         way.setTag("highway", "road");
         way.setTag("bicycle:conditional", "no @ (" + simpleDateFormat.format(new Date().getTime()) + ")");
         // ORS-GH MOD START
-        // TODO ORS: the following mod is commented out due to a test failure. Should conditionals be tested seperately?
+        // TODO ORS (minor): the following mod is commented out due to a test failure. Should conditionals be tested seperately?
         assertTrue(encoder.getAccess(way).canSkip());
         // ORS mod: assertTrue(encoder.getAccess(way).isConditional());
         // ORS-GH MOD END
@@ -203,7 +203,7 @@ public abstract class AbstractBikeFlagEncoderTester {
         way.setTag("access", "no");
         way.setTag("bicycle:conditional", "yes @ (" + simpleDateFormat.format(new Date().getTime()) + ")");
         // ORS-GH MOD START
-        // TODO ORS: the following mod is commented out due to a test failure. Should conditionals be tested seperately?
+        // TODO ORS (minor): the following mod is commented out due to a test failure. Should conditionals be tested seperately?
         assertTrue(encoder.getAccess(way).isWay());
         // ORS mod: assertTrue(encoder.getAccess(way).isConditional());
         // ORS-GH MOD END

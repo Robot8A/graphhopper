@@ -23,7 +23,9 @@ import com.graphhopper.coll.GHBitSet;
 import com.graphhopper.coll.GHBitSetImpl;
 import com.graphhopper.coll.GHTBitSet;
 import com.graphhopper.routing.ev.*;
+import com.graphhopper.routing.querygraph.EdgeIteratorStateHelper;
 import com.graphhopper.routing.util.*;
+import com.graphhopper.routing.weighting.QueryGraphWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.*;
 import com.graphhopper.storage.index.LocationIndex;
@@ -45,6 +47,14 @@ import static com.graphhopper.util.DistanceCalcEarth.DIST_EARTH;
  */
 public class GHUtility {
     private static final Logger LOGGER = LoggerFactory.getLogger(GHUtility.class);
+    // ORS-GH MOD START
+    // TODO ORS (minor): clean up this quick work around
+    // corrected turn restrictions for virtual edges have to be turned off if not in ORS due to failing tests
+    private static boolean inORS = false;
+    public void setInORS(boolean inORS) {
+        this.inORS = inORS;
+    }
+    // ORS-GH MOD END
 
     /**
      * This method could throw an exception if problems like index out of bounds etc
@@ -733,7 +743,17 @@ public class GHUtility {
         if (!EdgeIterator.Edge.isValid(prevOrNextEdgeId)) {
             return edgeWeight;
         }
+        // ORS-GH MOD START - correct turn cost for vitual edges
+        // TODO ORS (minor): This mod should not be necessary, as it is handled in QueryGraphWeighting.
+        //           Therefore, the mod is disabled but kept for reference; remove after upgrade is done.
         final int origEdgeId = reverse ? edgeState.getOrigEdgeLast() : edgeState.getOrigEdgeFirst();
+        //final int origEdgeId;
+        //if (inORS) {
+        //    origEdgeId = EdgeIteratorStateHelper.getOriginalEdge(edgeState);
+        //} else {
+        //    origEdgeId = reverse ? edgeState.getOrigEdgeLast() : edgeState.getOrigEdgeFirst();
+        //}
+        // ORS-GH MOD END
         double turnWeight = reverse
                 ? weighting.calcTurnWeight(origEdgeId, edgeState.getBaseNode(), prevOrNextEdgeId)
                 : weighting.calcTurnWeight(prevOrNextEdgeId, edgeState.getBaseNode(), origEdgeId);

@@ -1,6 +1,3 @@
-// TODO ORS: GraphExtension has been removed from GH. Should we move this
-// TODO ORS: re-implementation as a storage into BaseGraph and set it up there
-// TODO ORS: similar to TurnCostStorage (previously TurnCostExtension)?
 package com.graphhopper.storage;
 
 import com.graphhopper.search.ConditionalIndex;
@@ -57,8 +54,6 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
      * @param createdEdges    The internal id of the edge in the graph
      * @param value  The index pointing to the conditionals
      */
-
-
     public void addEdges(List<EdgeIteratorState> createdEdges, String value) {
         int conditionalRef = (int) conditionalIndex.put(value);
         if (conditionalRef < 0)
@@ -86,7 +81,6 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
      * @param edgeId    The internal graph id of the edger
      * @return The index pointing to the conditionals
      */
-
     public String getValue(int edgeId) {
         Integer index = values.get(edgeId);
 

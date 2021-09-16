@@ -379,7 +379,7 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    // TODO ORS: how to deal with @Override
+    // TODO ORS (minor): how to deal with @Override
     public long getTime() {
         throw new UnsupportedOperationException("Not supported.");
     }
