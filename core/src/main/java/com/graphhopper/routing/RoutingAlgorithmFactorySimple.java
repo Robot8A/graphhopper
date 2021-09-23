@@ -89,7 +89,7 @@ public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
 
         // ORS-GH MOD START
         // ORS pass edgefilter to algorithm
-        // TODO ORS: provide reason for this change
+        // TODO ORS (minor): provide reason for this change
         ra.setEdgeFilter(opts.getEdgeFilter());
         // ORS-GH MOD END
         return ra;

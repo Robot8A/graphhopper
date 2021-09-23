@@ -88,7 +88,7 @@ public class CHProfile {
     }
     // ORS-GH MOD END
 
-    @Deprecated // TODO ORS: remove old unused code
+    @Deprecated // TODO ORS (minor): remove old unused code
     public String toFileName() {
         //return AbstractWeighting.weightingToFileName(weighting) + "_" + (edgeBased ? ("edge_utc" + uTurnCosts) : "node");
         throw new RuntimeException("weightingToFileName has been removed from GH3");

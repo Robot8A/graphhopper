@@ -87,7 +87,7 @@ public class ConditionalEdgesMap implements Storable<ConditionalEdgesMap> {
         return (index == null) ? "" : conditionalIndex.get((long) index);
     }
 
-    @Deprecated // TODO ORS: remove after upgrade
+    @Deprecated // TODO ORS (minor): remove after upgrade
     public void init(Graph graph, Directory dir) {
         if (edgesCount > 0)
             throw new AssertionError("The conditional restrictions storage must be initialized only once.");

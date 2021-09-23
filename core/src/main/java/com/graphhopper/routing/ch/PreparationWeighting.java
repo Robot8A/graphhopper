@@ -1,4 +1,4 @@
-// TODO ORS: this file has been removed from GH (after being renamed into CHWeighting)
+// TODO ORS (major): this file has been removed from GH (after being renamed into CHWeighting)
 //           Where to apply the mods?
 
 

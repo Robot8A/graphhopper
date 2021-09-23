@@ -98,7 +98,7 @@ public class Dijkstra extends AbstractRoutingAlgorithm {
                 if (Double.isInfinite(tmpWeight)) {
                     continue;
                 }
-                // TODO ORS: MARQ24 WHY the heck the 'reverseDirection' is not used also for the traversal ID ???
+                // TODO ORS (minor): MARQ24 WHY the heck the 'reverseDirection' is not used also for the traversal ID ???
                 int traversalId = traversalMode.createTraversalId(iter, false);
 
                 SPTEntry nEdge = fromMap.get(traversalId);

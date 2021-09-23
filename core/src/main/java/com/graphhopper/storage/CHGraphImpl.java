@@ -86,7 +86,7 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         // CALT include type in directory location
         // this.nodesCH = dir.find("nodes_ch_" + name, DAType.getPreferredInt(dir.getDefaultType()));
         // this.shortcuts = dir.find("shortcuts_" + name, DAType.getPreferredInt(dir.getDefaultType()));
-        // TODO ORS: use polymorphism instead of this mix of string & boolean flags
+        // TODO ORS (minor): use polymorphism instead of this mix of string & boolean flags
         this.nodesCH = dir.find("nodes_" + chConfig.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
         this.shortcuts = dir.find("shortcuts_" + chConfig.getType() + "_" + name, DAType.getPreferredInt(dir.getDefaultType()));
         this.isTypeCore = chConfig.getType().equals(CHProfile.TYPE_CORE);
@@ -701,7 +701,7 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         }
         int scId = shortcut(a, b, accessFlags, weight, skippedEdge1, skippedEdge2);
         // TODO ORS: edgeAccess has been removed, how to do this now?
-        // TODO ORS: Maybe use CHEdgeIteratorStateImpl.setTime?
+        //           Maybe use CHEdgeIteratorStateImpl.setTime?
         // ORS ORIGINAL: chEdgeAccess.setTime(chEdgeAccess.toPointer(scId), time);
         return scId;
     }
@@ -1094,7 +1094,7 @@ public class CHGraphImpl implements CHGraph, Storable<CHGraph> {
         }
         // ORS-GH MOD END
     }
-    // TODO ORS: CHEdgeAccess got removed, where does our mod need to go?
+    // TODO ORS (major): CHEdgeAccess got removed, where does our mod need to go?
 //    private class CHEdgeAccess extends EdgeAccess {
 //        private final String name;
 //

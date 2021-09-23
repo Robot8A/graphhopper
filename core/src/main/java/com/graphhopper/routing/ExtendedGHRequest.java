@@ -8,7 +8,7 @@ import com.graphhopper.util.shapes.GHPoint;
 import java.util.Collections;
 import java.util.List;
 
-// TODO ORS: this class seems not in use, can it be removed?
+// TODO ORS (minor): this class seems not in use, can it be removed?
 public class ExtendedGHRequest extends GHRequest {
     private EdgeFilter edgeFilter;
     private PathProcessor pathProcessor;
@@ -75,7 +75,7 @@ public class ExtendedGHRequest extends GHRequest {
     // ORS-GH MOD START
     // ****************************************************************
     // Modification by Maxim Rylov: Added getEdgeFilter method.
-    // TODO ORS: provide a reason for this change
+    // TODO ORS (minor): provide a reason for this change
     public EdgeFilter getEdgeFilter() {
         return edgeFilter;
     }
@@ -87,12 +87,12 @@ public class ExtendedGHRequest extends GHRequest {
         return this;
     }
 
-    // TODO ORS: provide a reason for this change
+    // TODO ORS (minor): provide a reason for this change
     public PathProcessor getPathProcessor() {
         return this.pathProcessor;
     }
 
-    // TODO ORS: provide a reason for this change
+    // TODO ORS (minor): provide a reason for this change
     public void setPathProcessor(PathProcessor pathProcessor) {
         this.pathProcessor = pathProcessor;
     }

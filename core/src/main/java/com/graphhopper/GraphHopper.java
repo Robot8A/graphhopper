@@ -184,26 +184,6 @@ public class GraphHopper implements GraphHopperAPI {
         return dataReaderWorkerThreads;
     }
 
-    // ORS-GH MOD START
-    // CALT
-
-    /**
-     * @deprecated use RouterConfig instead
-     */
-    @Deprecated // TODO ORS (minor): remove after upgrade
-    public int getMaxRoundTripRetries() {
-        return getRouterConfig().getMaxRoundTripRetries();
-    }
-
-    /**
-     * @deprecated use RouterConfig instead
-     */
-    @Deprecated // TODO ORS (minor): remove after upgrade
-    public boolean isCalcPoints() {
-        return getRouterConfig().isCalcPoints();
-    }
-    // ORS-GH MOD END
-
     /**
      * Return maximum distance (in meter) to reduce points via douglas peucker while OSM import.
      */
@@ -1150,7 +1130,7 @@ public class GraphHopper implements GraphHopperAPI {
 //            else
 //                routingTemplate = new ViaRoutingTemplate(request, ghRsp, locationIndex, encodingManager);
 //
-//            // ORS-GH MOD START - TODO ORS: Put this mod at the appropriate place (Router?)
+//            // ORS-GH MOD START - additional code TODO ORS: Put this mod at the appropriate place (Router?)
 //            EdgeFilter edgeFilter = edgeFilterFactory.createEdgeFilter(request.getAdditionalHints(), encoder, ghStorage);
 //            routingTemplate.setEdgeFilter(edgeFilter);
 //
