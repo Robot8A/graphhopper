@@ -61,6 +61,9 @@ public class Router {
     private final TranslationMap translationMap;
     private final RouterConfig routerConfig;
     private final WeightingFactory weightingFactory;
+    // ORS GH-MOD START: way to inject additional edgeFilters to router
+    private EdgeFilterFactory edgeFilterFactory;
+    // ORS GH-MOD END
     // todo: these should not be necessary anymore as soon as GraphHopperStorage (or something that replaces) it acts
     // like a 'graph database'
     private final Map<String, RoutingCHGraph> chGraphs;
@@ -190,7 +193,12 @@ public class Router {
         } else if (lmEnabled && !disableLM) {
             return new LMSolver(request, profilesByName, routerConfig, encodingManager, weightingFactory, ghStorage, locationIndex, landmarks);
         } else {
-            return new FlexSolver(request, profilesByName, routerConfig, encodingManager, weightingFactory, ghStorage, locationIndex);
+            // ORS GH-MOD START: way to inject additional edgeFilters to router
+            // return new FlexSolver(request, profilesByName, routerConfig, encodingManager, weightingFactory, ghStorage, locationIndex);
+            FlexSolver solver = new FlexSolver(request, profilesByName, routerConfig, encodingManager, weightingFactory, ghStorage, locationIndex);
+            solver.setEdgeFilterFactory(edgeFilterFactory);
+            return solver;
+            // ORS GH-MOD END
         }
     }
 
@@ -348,6 +356,12 @@ public class Router {
         return hints.getBool(FORCE_CURBSIDE, true);
     }
 
+    // ORS GH-MOD START: way to inject additional edgeFilters to router
+    public void setEdgeFilterFactory(EdgeFilterFactory edgeFilterFactory) {
+        this.edgeFilterFactory = edgeFilterFactory;
+    }
+    // ORS GH-MOD END
+
     public static abstract class Solver {
         protected final GHRequest request;
         private final Map<String, Profile> profilesByName;
@@ -355,6 +369,9 @@ public class Router {
         protected Profile profile;
         protected Weighting weighting;
         protected final EncodedValueLookup lookup;
+        // ORS GH-MOD START: way to inject additional edgeFilters to router
+        protected EdgeFilterFactory edgeFilterFactory;
+        // ORS GH-MOD END
 
         public Solver(GHRequest request, Map<String, Profile> profilesByName, RouterConfig routerConfig, EncodedValueLookup lookup) {
             this.request = request;
@@ -426,6 +443,12 @@ public class Router {
         int getMaxVisitedNodes(PMap hints) {
             return hints.getInt(Parameters.Routing.MAX_VISITED_NODES, routerConfig.getMaxVisitedNodes());
         }
+
+        // ORS GH-MOD START: way to inject additional edgeFilters to router
+        public void setEdgeFilterFactory(EdgeFilterFactory edgeFilterFactory) {
+            this.edgeFilterFactory = edgeFilterFactory;
+        }
+        // ORS GH-MOD END
     }
 
     private static class CHSolver extends Solver {
@@ -521,6 +544,13 @@ public class Router {
         @Override
         protected FlexiblePathCalculator createPathCalculator(QueryGraph queryGraph) {
             RoutingAlgorithmFactory algorithmFactory = new RoutingAlgorithmFactorySimple();
+            // ORS-GH MOD START: initialize edgeFilter
+            if (edgeFilterFactory != null) {
+                AlgorithmOptions algoOpts = getAlgoOpts();
+                algoOpts.setEdgeFilter(edgeFilterFactory.createEdgeFilter(request.getAdditionalHints(), weighting.getFlagEncoder(), ghStorage));
+                return new FlexiblePathCalculator(queryGraph, algorithmFactory, weighting, algoOpts);
+            }
+            // ORS MOD END
             return new FlexiblePathCalculator(queryGraph, algorithmFactory, weighting, getAlgoOpts());
         }
 
@@ -530,9 +560,6 @@ public class Router {
                     setTraversalMode(profile.isTurnCosts() ? TraversalMode.EDGE_BASED : TraversalMode.NODE_BASED).
                     setMaxVisitedNodes(getMaxVisitedNodes(request.getHints())).
                     setHints(request.getHints());
-            // ORS-GH MOD START
-            // algoOpts.setEdgeFilter(edgeFilter); // TODO ORS: where get edgeFilter from?
-            // ORS MOD END
 
             // use A* for round trips
             if (ROUND_TRIP.equalsIgnoreCase(request.getAlgorithm())) {

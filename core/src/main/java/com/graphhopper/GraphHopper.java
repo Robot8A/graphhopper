@@ -124,14 +124,9 @@ public class GraphHopper implements GraphHopperAPI {
     private PathDetailsBuilderFactory pathBuilderFactory = new PathDetailsBuilderFactory();
 
     // ORS-GH MOD START
-    protected EdgeFilterFactory edgeFilterFactory = EdgeFilterFactory.DEFAULT;
     protected PathProcessorFactory pathProcessorFactory = PathProcessorFactory.DEFAULT;
     protected WeightingFactory weightingFactory;
     protected GraphStorageFactory graphStorageFactory;
-
-    public void setEdgeFilterFactory(EdgeFilterFactory newFactory) {
-        this.edgeFilterFactory = newFactory;
-    }
 
     public void setPathProcessorFactory(PathProcessorFactory newFactory) {
         this.pathProcessorFactory = newFactory;

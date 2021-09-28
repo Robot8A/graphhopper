@@ -74,8 +74,7 @@ public interface RoutingAlgorithm {
      */
     int getVisitedNodes();
     
-    // ORS-GH MOD START: additional method
-    // TODO ORS (minor): provide reason for this change
+    // ORS-GH MOD START: provide method for passing additionalEdgeFilter to any algo
     RoutingAlgorithm setEdgeFilter(EdgeFilter additionalEdgeFilter);
     // ORS-GH-MOD END
 }

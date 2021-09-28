@@ -153,8 +153,7 @@ public class AlgorithmOptions {
 //        }
 //    }
 //
-    // ORS-GH MOD START
-    // ORS TODO: provide a reason for this change
+    // ORS-GH MOD START: handle additional edgeFilter to pass to algo
     protected EdgeFilter edgeFilter;
 
     public EdgeFilter getEdgeFilter() {

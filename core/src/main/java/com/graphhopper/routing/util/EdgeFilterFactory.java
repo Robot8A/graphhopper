@@ -20,9 +20,7 @@ package com.graphhopper.routing.util;
 import com.graphhopper.storage.GraphHopperStorage;
 import com.graphhopper.util.PMap;
 
-// ORS GH-MOD - new class
+// ORS GH-MOD: way to inject additional edgeFilters to router
 public interface EdgeFilterFactory {
-    EdgeFilterFactory DEFAULT = new DefaultEdgeFilterFactory();
-
     EdgeFilter createEdgeFilter(PMap opts, FlagEncoder flagEncoder, GraphHopperStorage gs);
 }

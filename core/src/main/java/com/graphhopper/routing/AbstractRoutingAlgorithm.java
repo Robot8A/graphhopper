@@ -63,8 +63,7 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
         this.maxVisitedNodes = numberOfNodes;
     }
 
-    // ORS-GH MOD START - additional method
-    @Override
+    // ORS-GH MOD START - additional method for passing additionalEdgeFilter to any algo
     public RoutingAlgorithm setEdgeFilter(EdgeFilter additionalEdgeFilter) {
         this.additionalEdgeFilter = additionalEdgeFilter;
         return this;
@@ -74,7 +73,11 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     protected boolean accept(EdgeIteratorState iter, int prevOrNextEdgeId) {
         // for edge-based traversal we leave it for TurnWeighting to decide whether or not a u-turn is acceptable,
         // but for node-based traversal we exclude such a turn for performance reasons already here
-        return traversalMode.isEdgeBased() || iter.getEdge() != prevOrNextEdgeId;
+        // ORS-GH MOD START - apply additional filters
+        // return traversalMode.isEdgeBased() || iter.getEdge() != prevOrNextEdgeId;
+        if (!traversalMode.isEdgeBased() && iter.getEdge() == prevOrNextEdgeId)
+            return false;
+        return additionalEdgeFilter == null || additionalEdgeFilter.accept(iter);
     }
 
     protected void checkAlreadyRun() {
