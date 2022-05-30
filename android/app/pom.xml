@@ -16,7 +16,7 @@
         <relativePath>../..</relativePath>
         <groupId>com.graphhopper</groupId>
         <artifactId>graphhopper-parent</artifactId>
-        <version>0.13-SNAPSHOT</version>
+        <version>v0.13.21-2</version>
     </parent>
     <properties>
         <vtm.version>0.11.1</vtm.version>

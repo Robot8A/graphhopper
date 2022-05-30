@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.graphhopper</groupId>
+    <groupId>com.github.GIScience.graphhopper</groupId>
     <artifactId>graphhopper-api</artifactId>
     <packaging>jar</packaging>
     <version>0.13-SNAPSHOT</version>
@@ -11,7 +11,7 @@
     <description>Use the GraphHopper routing engine as a web-service</description>
 
     <parent>
-        <groupId>com.graphhopper</groupId>
+        <groupId>com.github.GIScience.graphhopper</groupId>
         <artifactId>graphhopper-parent</artifactId>
         <version>0.13-SNAPSHOT</version>
     </parent>
