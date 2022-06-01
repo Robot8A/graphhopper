@@ -89,10 +89,14 @@ public class InstructionsFromEdges implements Path.EdgeVisitor {
     private final int MAX_U_TURN_DISTANCE = 35;
     protected GHLongArrayList times;
     // ORS-GH MOD START
-    private PathProcessor mPathProcessor = PathProcessor.DEFAULT;
-//    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
-//                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
-//                                 Translation tr, InstructionList ways, GHLongArrayList times) {
+    private PathProcessor mPathProcessor;
+
+    public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
+                                 BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
+                                 Translation tr, InstructionList ways) {
+        this(tmpNode, graph, weighting, encoder, roundaboutEnc, nodeAccess, tr, ways, PathProcessor.DEFAULT, null);
+    }
+
     public InstructionsFromEdges(int tmpNode, Graph graph, Weighting weighting, FlagEncoder encoder,
                                  BooleanEncodedValue roundaboutEnc, NodeAccess nodeAccess,
                 Translation tr, InstructionList ways, PathProcessor pathProcessor, GHLongArrayList times) {

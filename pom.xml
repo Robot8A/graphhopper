@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.GIScience.graphhopper</groupId>
+    <groupId>com.graphhopper</groupId>
     <artifactId>graphhopper-parent</artifactId>
     <name>GraphHopper Parent Project</name>
     <version>0.13-SNAPSHOT</version>
@@ -85,7 +85,7 @@
         <module>core</module>
         <module>reader-osm</module>
         <!-- ORS-GH MOD<module>isochrone</module> -->
-        <!-- ORS-GH MOD<module>reader-gtfs</module> -->
+        <module>reader-gtfs</module>
         <!-- ORS-GH MOD<module>tools</module> -->
         <!-- ORS-GH MOD<module>web-bundle</module> -->
         <module>api</module>

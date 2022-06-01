@@ -56,8 +56,11 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState, CHEdgeIterat
         return originalEdgeId;
     }
 
-    //public VirtualEdgeIteratorState(int originalEdgeKey, int edgeId, int baseNode, int adjNode, double distance,
-    //                                IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+    public VirtualEdgeIteratorState(int originalEdgeKey, int edgeId, int baseNode, int adjNode, double distance,
+                                    IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+        this(originalEdgeKey, edgeId, originalEdgeKey, baseNode, adjNode, distance, edgeFlags, name, pointList, reverse);
+    }
+
     public VirtualEdgeIteratorState(int originalEdgeKey, int edgeId, int originalEdgeId, int baseNode, int adjNode, double distance,
                                     IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
         this.originalEdgeId = originalEdgeId;

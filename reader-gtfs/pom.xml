@@ -19,17 +19,17 @@
         <dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper-core</artifactId>
-            <version>${project.parent.version}</version>
+            <version>0.13-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper-web-api</artifactId>
-            <version>${project.parent.version}</version>
+            <version>0.13-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper-reader-osm</artifactId>
-            <version>${project.parent.version}</version>
+            <version>0.13-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -77,16 +77,15 @@
             <artifactId>activation</artifactId>
             <version>1.1.1</version>
         </dependency>
-	<dependency>
+    	<dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.0</version>
         </dependency>
-
         <dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper-core</artifactId>
-            <version>${project.parent.version}</version>
+            <version>0.13-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
