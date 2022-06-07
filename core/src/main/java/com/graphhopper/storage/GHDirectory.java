@@ -20,8 +20,11 @@ package com.graphhopper.storage;
 import java.io.File;
 import java.nio.ByteOrder;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static com.graphhopper.storage.DAType.RAM_INT;
+import static com.graphhopper.storage.DAType.RAM_INT_STORE;
 import static com.graphhopper.util.Helper.*;
 
 /**
@@ -32,6 +35,9 @@ import static com.graphhopper.util.Helper.*;
 public class GHDirectory implements Directory {
     protected final String location;
     private final DAType defaultType;
+
+    private final Map<String, DAType> defaultTypes = new LinkedHashMap<>();
+
     private final ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
     protected Map<String, DataAccess> map = new HashMap<>();
 
@@ -62,6 +68,12 @@ public class GHDirectory implements Directory {
     @Override
     public DataAccess create(String name, int segmentSize) {
         return create(name, defaultType, segmentSize);
+    }
+
+    private DAType getDefault(String name, DAType typeFallback) {
+        for (Map.Entry<String, DAType> entry : defaultTypes.entrySet())
+            if (name.matches(entry.getKey())) return entry.getValue();
+        return typeFallback;
     }
 
     @Override
@@ -135,6 +147,17 @@ public class GHDirectory implements Directory {
     @Override
     public DAType getDefaultType() {
         return defaultType;
+    }
+
+    /**
+     * This method returns the default DAType of the specified DataAccess (as string). If preferInts is true then this
+     * method returns e.g. RAM_INT if the type of the specified DataAccess is RAM.
+     */
+    public DAType getDefaultType(String dataAccess, boolean preferInts) {
+        DAType type = getDefault(dataAccess, defaultType);
+        if (preferInts && type.isInMemory())
+            return type.isStoring() ? RAM_INT_STORE : RAM_INT;
+        return type;
     }
 
     public boolean isStoring() {

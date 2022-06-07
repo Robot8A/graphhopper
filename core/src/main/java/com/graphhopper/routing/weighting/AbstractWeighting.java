@@ -50,6 +50,11 @@ public abstract class AbstractWeighting implements Weighting {
         this.turnCostProvider = turnCostProvider;
     }
 
+    @Override
+    public boolean edgeHasNoAccess(EdgeIteratorState edgeState, boolean reverse) {
+        return reverse ? !edgeState.getReverse(accessEnc) : !edgeState.get(accessEnc);
+    }
+
     /**
      * In most cases subclasses should only override this method to change the edge-weight. The turn cost handling
      * should normally be changed by passing another {@link TurnCostProvider} implementation to the constructor instead.

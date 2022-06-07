@@ -922,6 +922,10 @@ public class RoutingAlgorithmTest {
                 return 0.8 * distance;
             }
 
+            public boolean edgeHasNoAccess(EdgeIteratorState edgeState, boolean reverse) {
+                return tmpW.edgeHasNoAccess(edgeState, reverse);
+            }
+
             @Override
             public final double calcEdgeWeight(EdgeIteratorState edgeState, boolean reverse) {
                 int adj = edgeState.getAdjNode();
