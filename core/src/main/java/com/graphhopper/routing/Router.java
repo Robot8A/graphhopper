@@ -298,6 +298,7 @@ public class Router {
         PathCalculator pathCalculator = solver.createPathCalculator(queryGraph);
         boolean passThrough = getPassThrough(request.getHints());
         boolean forceCurbsides = getForceCurbsides(request.getHints());
+        //TODO: check where departure gets lost from here…
         ViaRouting.Result result = ViaRouting.calcPaths(request.getPoints(), queryGraph, snaps, solver.weighting, pathCalculator, request.getCurbsides(), forceCurbsides, request.getHeadings(), passThrough);
 
         if (request.getPoints().size() != result.paths.size() + 1)
@@ -306,6 +307,7 @@ public class Router {
         ResponsePath responsePath;
         // ORS-GH MOD START - create and pass PathProcessor
         if (request.getEncoderName() != null && !request.getEncoderName().isEmpty()) {
+            //TODO: … or in here?
             PathProcessor pathProcessor = pathProcessorFactory.createPathProcessor(request.getAdditionalHints(), encodingManager.getEncoder(request.getEncoderName()), ghStorage);
             responsePath = concatenatePaths(request, solver.weighting, queryGraph, result.paths, getWaypoints(snaps), pathProcessor);
             ghRsp.addReturnObject(pathProcessor);
@@ -317,6 +319,8 @@ public class Router {
 
         responsePath.addDebugInfo(result.debug);
         ghRsp.add(responsePath);
+
+        //TODO: This: ghRsp.getHints() is where departure/arrival should show up. However, its never put into the response hints.
         ghRsp.getHints().putObject("visited_nodes.sum", result.visitedNodes);
         ghRsp.getHints().putObject("visited_nodes.average", (float) result.visitedNodes / (snaps.size() - 1));
         return ghRsp;
