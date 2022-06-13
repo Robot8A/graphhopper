@@ -591,7 +591,7 @@ public class OSMReader implements DataReader {
 
     // TODO remove this ugly stuff via better preparsing phase! E.g. putting every tags etc into a helper file!
     // ORS-GH MOD - expose method
-    protected double getTmpLatitude(int id) {
+    public double getTmpLatitude(int id) {
         if (id == EMPTY_NODE)
             return Double.NaN;
         if (id < TOWER_NODE) {
@@ -608,7 +608,7 @@ public class OSMReader implements DataReader {
     }
 
     // ORS-GH MOD - expose method
-    protected double getTmpLongitude(int id) {
+    public double getTmpLongitude(int id) {
         if (id == EMPTY_NODE)
             return Double.NaN;
         if (id < TOWER_NODE) {
@@ -753,7 +753,8 @@ public class OSMReader implements DataReader {
     /**
      * This method creates from an OSM way (via the osm ids) one or more edges in the graph.
      */
-    Collection<EdgeIteratorState> addOSMWay(final LongIndexedContainer osmNodeIds, final IntsRef flags, final long wayOsmId) {
+    // ORS-GH MOD - expose method
+    public Collection<EdgeIteratorState> addOSMWay(final LongIndexedContainer osmNodeIds, final IntsRef flags, final long wayOsmId) {
         PointList pointList = new PointList(osmNodeIds.size(), nodeAccess.is3D());
         List<EdgeIteratorState> newEdges = new ArrayList<>(5);
         int firstNode = -1;
@@ -1132,7 +1133,7 @@ public class OSMReader implements DataReader {
     }
 
     // ORS-GH MOD START - Method for getting to the node access object
-    protected NodeAccess getNodeAccess() {
+    public NodeAccess getNodeAccess() {
         return this.nodeAccess;
     }
     // ORS-GH MOD END
