@@ -147,4 +147,17 @@ public class DefaultWeightingFactory implements WeightingFactory {
         return null; // Override in external ORS code base
     }
     // ORS-GH MOD END
+
+
+    public Weighting createTimeDependentAccessWeighting(Weighting weighting, String algo) {
+        FlagEncoder flagEncoder = weighting.getFlagEncoder();
+        if (encodingManager.hasEncodedValue(EncodingManager.getKey(flagEncoder, ConditionalEdges.ACCESS)) && isAlgorithmTimeDependent(algo))
+            return new TimeDependentAccessWeighting(weighting, ghStorage, flagEncoder);
+        else
+            return weighting;
+    }
+
+    private boolean isAlgorithmTimeDependent(String algo) {
+        return ("td_dijkstra".equals(algo) || "td_astar".equals(algo)) ? true : false;
+    }
 }

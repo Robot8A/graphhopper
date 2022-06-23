@@ -31,6 +31,7 @@ import com.graphhopper.routing.lm.LandmarkStorage;
 import com.graphhopper.routing.querygraph.QueryGraph;
 import com.graphhopper.routing.util.*;
 import com.graphhopper.routing.weighting.BlockAreaWeighting;
+import com.graphhopper.routing.weighting.TimeDependentAccessWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.routing.weighting.custom.CustomProfile;
 import com.graphhopper.storage.*;
@@ -43,13 +44,13 @@ import com.graphhopper.util.exceptions.PointNotFoundException;
 import com.graphhopper.util.exceptions.PointOutOfBoundsException;
 import com.graphhopper.util.shapes.BBox;
 import com.graphhopper.util.shapes.GHPoint;
+import com.graphhopper.util.shapes.GHPoint3D;
 
 import java.util.*;
 
 import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
 import static com.graphhopper.util.DistanceCalcEarth.DIST_EARTH;
-import static com.graphhopper.util.Parameters.Algorithms.ALT_ROUTE;
-import static com.graphhopper.util.Parameters.Algorithms.ROUND_TRIP;
+import static com.graphhopper.util.Parameters.Algorithms.*;
 import static com.graphhopper.util.Parameters.Routing.*;
 
 public class Router {
@@ -113,6 +114,16 @@ public class Router {
             // ORS GH-MOD END
             solver.checkRequest();
             solver.init();
+
+            // ORS GH-MOD START: now we have a td-weighting since this is done in solver and we have the request.
+            //if (solver.weighting.isTimeDependent()) {
+            //    request.setAlgorithm(TD_ASTAR);
+
+            //    String departureTimeString = request.getHints().getObject("pt.earliest_departure_time", "");
+            //    if (!departureTimeString.isEmpty())
+            //        request.getHints().putObject("departure", departureTimeString);
+            //}
+            // ORS GH-MOD END
 
             if (ROUND_TRIP.equalsIgnoreCase(request.getAlgorithm())) {
                 if (!(solver instanceof FlexSolver))
@@ -317,8 +328,26 @@ public class Router {
         }
         // ORS-GH MOD END
 
+        DateTimeHelper dateTimeHelper = new DateTimeHelper(ghStorage);
+        GHPoint3D point, departurePoint = snaps.get(0).getSnappedPoint();
+        GHPoint3D arrivalPoint = snaps.get(snaps.size() - 1).getSnappedPoint();
+		ghRsp.getHints().putObject("timezone.departure", dateTimeHelper.getZoneId(departurePoint.lat, departurePoint.lon));
+        ghRsp.getHints().putObject("timezone.arrival", dateTimeHelper.getZoneId(arrivalPoint.lat, arrivalPoint.lon));
+
+        String key;
+        if (ghRsp.getHints().has("departure")) {
+            key = "departure";
+            point = departurePoint;
+        } else {
+            key = "arrival";
+            point = arrivalPoint;
+        }
+        String time = ghRsp.getHints().getString(key, "");
+        ghRsp.getHints().putObject(key, dateTimeHelper.getZonedDateTime(point.lat, point.lon, time).toInstant());
+
         responsePath.addDebugInfo(result.debug);
         ghRsp.add(responsePath);
+
 
         //TODO: This: ghRsp.getHints() is where departure/arrival should show up. However, its never put into the response hints.
         ghRsp.getHints().putObject("visited_nodes.sum", result.visitedNodes);
@@ -536,7 +565,7 @@ public class Router {
         }
     }
 
-    private static class FlexSolver extends Solver {
+    private class FlexSolver extends Solver {
         protected final RouterConfig routerConfig;
         private final WeightingFactory weightingFactory;
         private final GraphHopperStorage ghStorage;
@@ -567,8 +596,32 @@ public class Router {
                         request.getPoints(), requestHints, new FiniteWeightFilter(weighting));
                 weighting = new BlockAreaWeighting(weighting, blockArea);
             }
+
+            // GH-MOD START
+            // here, we have both the encodingManager and the algorithm, so we can create a TD-Weighting since it needs
+            // to know whether there are conditional edges and whether the algo supports it.
+            // createTimeDependentAccessWeighting(weighting, request.getAlgorithm());
+            // GH-MOD END
+
             return weighting;
         }
+
+        // GH-MOD START
+        /**
+         * Potentially wraps the specified weighting into a TimeDependentAccessWeighting.
+         */
+        public Weighting createTimeDependentAccessWeighting(Weighting weighting, String algo) {
+            FlagEncoder flagEncoder = weighting.getFlagEncoder();
+            if (encodingManager.hasEncodedValue(EncodingManager.getKey(flagEncoder, ConditionalEdges.ACCESS)) && isAlgorithmTimeDependent(algo))
+                return new TimeDependentAccessWeighting(weighting, ghStorage, flagEncoder);
+            else
+                return weighting;
+        }
+
+        private boolean isAlgorithmTimeDependent(String algo) {
+            return ("td_dijkstra".equals(algo) || "td_astar".equals(algo)) ? true : false;
+        }
+        // GH-MOD END
 
         @Override
         protected FlexiblePathCalculator createPathCalculator(QueryGraph queryGraph) {
@@ -616,7 +669,7 @@ public class Router {
         }
     }
 
-    private static class LMSolver extends FlexSolver {
+    private class LMSolver extends FlexSolver {
         private final Map<String, LandmarkStorage> landmarks;
 
         LMSolver(GHRequest request, Map<String, Profile> profilesByName, RouterConfig routerConfig, EncodedValueLookup lookup,

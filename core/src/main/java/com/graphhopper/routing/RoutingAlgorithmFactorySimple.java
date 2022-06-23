@@ -47,7 +47,13 @@ public class RoutingAlgorithmFactorySimple implements RoutingAlgorithmFactory {
             ra = new DijkstraBidirectionRef(g, weighting, opts.getTraversalMode());
         } else if (DIJKSTRA.equalsIgnoreCase(algoStr)) {
             ra = new Dijkstra(g, weighting, opts.getTraversalMode());
-
+        // ORS-GH MOD START -- new code
+        } else if (TD_DIJKSTRA.equalsIgnoreCase(algoStr)) {
+            TDDijkstra tdd = new TDDijkstra(g, weighting, opts.getTraversalMode());
+            if (opts.getHints().has("arrival"))
+                tdd.reverse();
+            ra = tdd;
+        // ORS-GH MOD END
         } else if (ASTAR_BI.equalsIgnoreCase(algoStr) || Helper.isEmpty(algoStr)) {
             AStarBidirection aStarBi = new AStarBidirection(g, weighting,
                     opts.getTraversalMode());
