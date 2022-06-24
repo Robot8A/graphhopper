@@ -46,6 +46,7 @@ import com.graphhopper.util.shapes.BBox;
 import com.graphhopper.util.shapes.GHPoint;
 import com.graphhopper.util.shapes.GHPoint3D;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
@@ -328,9 +329,11 @@ public class Router {
         }
         // ORS-GH MOD END
 
+        // we need the ghResponse and the snapped points, which is why this is here.
         DateTimeHelper dateTimeHelper = new DateTimeHelper(ghStorage);
         GHPoint3D point, departurePoint = snaps.get(0).getSnappedPoint();
         GHPoint3D arrivalPoint = snaps.get(snaps.size() - 1).getSnappedPoint();
+
 		ghRsp.getHints().putObject("timezone.departure", dateTimeHelper.getZoneId(departurePoint.lat, departurePoint.lon));
         ghRsp.getHints().putObject("timezone.arrival", dateTimeHelper.getZoneId(arrivalPoint.lat, arrivalPoint.lon));
 
