@@ -1026,10 +1026,11 @@ public class GraphHopper {
         }
 
         // TODO ORS: TimeZoneMap.forRegion hangs for more than 15 minutes
+        // TODO ORS: works for tests…
         // ORS-GH MOD START
         // needed for TD routing
-        //BBox bb = ghStorage.getBounds();
-        //ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
+        BBox bb = ghStorage.getBounds();
+        ghStorage.setTimeZoneMap(TimeZoneMap.forRegion(bb.minLat, bb.minLon, bb.maxLat, bb.maxLon));
         // ORS-GH MOD END
 
         initLocationIndex();
