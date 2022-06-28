@@ -43,13 +43,13 @@ import com.graphhopper.util.exceptions.PointNotFoundException;
 import com.graphhopper.util.exceptions.PointOutOfBoundsException;
 import com.graphhopper.util.shapes.BBox;
 import com.graphhopper.util.shapes.GHPoint;
+import com.graphhopper.util.shapes.GHPoint3D;
 
 import java.util.*;
 
 import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
 import static com.graphhopper.util.DistanceCalcEarth.DIST_EARTH;
-import static com.graphhopper.util.Parameters.Algorithms.ALT_ROUTE;
-import static com.graphhopper.util.Parameters.Algorithms.ROUND_TRIP;
+import static com.graphhopper.util.Parameters.Algorithms.*;
 import static com.graphhopper.util.Parameters.Routing.*;
 
 public class Router {
@@ -113,6 +113,22 @@ public class Router {
             // ORS GH-MOD END
             solver.checkRequest();
             solver.init();
+
+            // ORS GH-MOD START:
+            // TODO: we need to enable a td-algorithm if the weighting is TD.
+            //     As I understand it, this needs the solver and the request, since the former contains the weighting and the latter the algorithm.
+            //     However, turning this on here leads to a number of tests failing in gh because of the wrong algorithm being set.
+            //     Thus, I assume this needs to be done in ORSRouter or higher up in RP or RPM
+            //if (solver.weighting.isTimeDependent()) {
+            //    request.setAlgorithm(TD_ASTAR);
+            //}
+
+            // TODO: This needs to happen somewhere as well, I guess… probably wherever the request is handled
+            //String departureTimeString = request.getHints().getObject("pt.earliest_departure_time", "");
+            //if (!departureTimeString.isEmpty())
+            //    request.getHints().putObject("departure", departureTimeString);
+            //}
+            // ORS GH-MOD END
 
             if (ROUND_TRIP.equalsIgnoreCase(request.getAlgorithm())) {
                 if (!(solver instanceof FlexSolver))
@@ -314,6 +330,25 @@ public class Router {
             responsePath = concatenatePaths(request, solver.weighting, queryGraph, result.paths, getWaypoints(snaps));
         }
         // ORS-GH MOD END
+
+        // we need the ghResponse and the snapped points, which is why this is here.
+        DateTimeHelper dateTimeHelper = new DateTimeHelper(ghStorage);
+        GHPoint3D point, departurePoint = snaps.get(0).getSnappedPoint();
+        GHPoint3D arrivalPoint = snaps.get(snaps.size() - 1).getSnappedPoint();
+
+		ghRsp.getHints().putObject("timezone.departure", dateTimeHelper.getZoneId(departurePoint.lat, departurePoint.lon));
+        ghRsp.getHints().putObject("timezone.arrival", dateTimeHelper.getZoneId(arrivalPoint.lat, arrivalPoint.lon));
+
+        String key;
+        if (ghRsp.getHints().has("departure")) {
+            key = "departure";
+            point = departurePoint;
+        } else {
+            key = "arrival";
+            point = arrivalPoint;
+        }
+        String time = ghRsp.getHints().getString(key, "");
+        ghRsp.getHints().putObject(key, dateTimeHelper.getZonedDateTime(point.lat, point.lon, time).toInstant());
 
         responsePath.addDebugInfo(result.debug);
         ghRsp.add(responsePath);
