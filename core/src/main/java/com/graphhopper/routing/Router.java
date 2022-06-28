@@ -46,7 +46,6 @@ import com.graphhopper.util.shapes.BBox;
 import com.graphhopper.util.shapes.GHPoint;
 import com.graphhopper.util.shapes.GHPoint3D;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.graphhopper.routing.weighting.Weighting.INFINITE_U_TURN_COSTS;
@@ -116,13 +115,19 @@ public class Router {
             solver.checkRequest();
             solver.init();
 
-            // ORS GH-MOD START: now we have a td-weighting since this is done in solver and we have the request.
+            // ORS GH-MOD START:
+            // TODO: we need to enable a td-algorithm if the weighting is TD.
+            //     As I understand it, this needs the solver and the request, since the former contains the weighting and the latter the algorithm.
+            //     However, turning this on here leads to a number of tests failing in gh because of the wrong algorithm being set.
+            //     Thus, I assume this needs to be done in ORSRouter or higher up in RP or RPM
             //if (solver.weighting.isTimeDependent()) {
             //    request.setAlgorithm(TD_ASTAR);
+            //}
 
-            //    String departureTimeString = request.getHints().getObject("pt.earliest_departure_time", "");
-            //    if (!departureTimeString.isEmpty())
-            //        request.getHints().putObject("departure", departureTimeString);
+            // TODO: This needs to happen somewhere as well, I guess… probably wherever the request is handled
+            //String departureTimeString = request.getHints().getObject("pt.earliest_departure_time", "");
+            //if (!departureTimeString.isEmpty())
+            //    request.getHints().putObject("departure", departureTimeString);
             //}
             // ORS GH-MOD END
 
