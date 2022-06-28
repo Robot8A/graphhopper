@@ -2222,10 +2222,6 @@ public class GraphHopperTest {
                 .setCHProfiles(new CHProfile("profile"));
         hopper.setMinNetworkSize(0);
         hopper.importOrLoad();
-        // ORS-GH MOD START
-        hopper.getGraphHopperStorage().setTimeZoneMap(TimeZoneMap.forRegion(0, 0, 1, 1));
-        // ORS-GH MOD END
-
         // here from and to both snap to small subnetworks that are disconnected from the main graph and
         // since we set min network size to 0 we expect a connection not found error
         GHPoint from = new GHPoint(49.97964, 11.539593);
