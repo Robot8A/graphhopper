@@ -32,6 +32,11 @@ public class DateTimeHelper {
     }
 
     public ZonedDateTime getZonedDateTime(double lat, double lon, String time) {
+        // if the query has no departure or arrival, time will be empty, so we default to now.
+        // TODO: move this to the "outside", i.e. resolve in query parsing
+        if (time == "") {
+            time = LocalDateTime.now().toString();
+        }
         LocalDateTime localDateTime = LocalDateTime.parse(time);
         String timeZoneId = timeZoneMap.getOverlappingTimeZone(lat, lon).getZoneId();
         return localDateTime.atZone(ZoneId.of(timeZoneId));

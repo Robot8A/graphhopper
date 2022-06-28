@@ -35,6 +35,7 @@ import com.graphhopper.util.details.PathDetail;
 import com.graphhopper.util.details.PathDetailsBuilderFactory;
 import com.graphhopper.util.shapes.GHPoint;
 import org.junit.jupiter.api.Test;
+import us.dustinj.timezonemap.TimeZoneMap;
 
 import java.util.*;
 
@@ -198,6 +199,7 @@ class HeadingRoutingTest {
         CarFlagEncoder carEncoder = new CarFlagEncoder();
         EncodingManager encodingManager = new EncodingManager.Builder().add(carEncoder).add(Subnetwork.create("profile")).build();
         GraphHopperStorage g = new GraphBuilder(encodingManager).create();
+        g.setTimeZoneMap(TimeZoneMap.forRegion(0, 0, 1, 1));
 
         //   2---3---4
         //  /    |    \
