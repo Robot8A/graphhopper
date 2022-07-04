@@ -24,6 +24,8 @@ import com.graphhopper.util.FetchMode;
 import com.graphhopper.util.GHUtility;
 import com.graphhopper.util.PointList;
 
+import java.util.Map;
+
 /**
  * Creates an edge state decoupled from a graph where nodes, pointList, etc are kept in memory.
  * <p>
@@ -38,21 +40,21 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     private final int originalEdgeKey;
     private double distance;
     private IntsRef edgeFlags;
-    private String name;
+    private Map<String, Object> keyValues;
     // true if edge should be avoided as start/stop
     private boolean unfavored;
     private EdgeIteratorState reverseEdge;
     private final boolean reverse;
 
     public VirtualEdgeIteratorState(int originalEdgeKey, int edgeKey, int baseNode, int adjNode, double distance,
-                                    IntsRef edgeFlags, String name, PointList pointList, boolean reverse) {
+                                    IntsRef edgeFlags, Map<String, Object> keyValues, PointList pointList, boolean reverse) {
         this.originalEdgeKey = originalEdgeKey;
         this.edgeKey = edgeKey;
         this.baseNode = baseNode;
         this.adjNode = adjNode;
         this.distance = distance;
         this.edgeFlags = edgeFlags;
-        this.name = name;
+        this.keyValues = keyValues;
         this.pointList = pointList;
         this.reverse = reverse;
     }
@@ -75,6 +77,11 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     @Override
     public int getEdgeKey() {
         return edgeKey;
+    }
+
+    @Override
+    public int getReverseEdgeKey() {
+        return baseNode == adjNode ? edgeKey : GHUtility.reverseEdgeKey(edgeKey);
     }
 
     @Override
@@ -268,29 +275,29 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
         property.setEnum(!reverse, edgeFlags, bwd);
         return this;
     }
-    
+
     @Override
     public String get(StringEncodedValue property) {
         return property.getString(reverse, edgeFlags);
     }
-    
+
     @Override
     public EdgeIteratorState set(StringEncodedValue property, String value) {
         property.setString(reverse, edgeFlags, value);
         return this;
     }
-    
+
     @Override
     public String getReverse(StringEncodedValue property) {
         return property.getString(!reverse, edgeFlags);
     }
-    
+
     @Override
     public EdgeIteratorState setReverse(StringEncodedValue property, String value) {
         property.setString(!reverse, edgeFlags, value);
         return this;
     }
-    
+
     @Override
     public EdgeIteratorState set(StringEncodedValue property, String fwd, String bwd) {
         if (!property.isStoreTwoDirections())
@@ -302,13 +309,25 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
 
     @Override
     public String getName() {
-        return name;
+        String name = (String) keyValues.get("name");
+        // preserve backward compatibility (returns empty string if name tag missing)
+        return name == null ? "" : name;
     }
 
     @Override
-    public EdgeIteratorState setName(String name) {
-        this.name = name;
+    public EdgeIteratorState setKeyValues(Map<String, Object> map) {
+        this.keyValues = map;
         return this;
+    }
+
+    @Override
+    public Map<String, Object> getKeyValues() {
+        return keyValues;
+    }
+
+    @Override
+    public Object getValue(String key) {
+        return keyValues.get(key);
     }
 
     /**
@@ -324,22 +343,12 @@ public class VirtualEdgeIteratorState implements EdgeIteratorState {
     }
 
     @Override
-    public int getOrigEdgeFirst() {
-        return getEdge();
-    }
-
-    @Override
-    public int getOrigEdgeLast() {
-        return getEdge();
-    }
-
-    @Override
     public EdgeIteratorState detach(boolean reverse) {
         if (reverse) {
             // update properties of reverse edge
             // TODO copy pointList (geometry) too
             reverseEdge.setFlags(getFlags());
-            reverseEdge.setName(getName());
+            reverseEdge.setKeyValues(getKeyValues());
             reverseEdge.setDistance(getDistance());
             return reverseEdge;
         } else {

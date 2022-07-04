@@ -29,8 +29,7 @@ import com.graphhopper.routing.weighting.PriorityWeighting;
 import com.graphhopper.routing.weighting.TurnCostProvider;
 import com.graphhopper.routing.weighting.custom.CustomModelParser;
 import com.graphhopper.routing.weighting.custom.CustomWeighting;
-import com.graphhopper.storage.GraphBuilder;
-import com.graphhopper.storage.GraphHopperStorage;
+import com.graphhopper.storage.BaseGraph;
 import com.graphhopper.storage.NodeAccess;
 import com.graphhopper.util.CustomModel;
 import com.graphhopper.util.DistanceCalcEarth;
@@ -44,9 +43,9 @@ public class PriorityRoutingTest {
 
     @Test
     void testMaxPriority() {
-        BikeFlagEncoder encoder = new BikeFlagEncoder();
+        FlagEncoder encoder = FlagEncoders.createBike();
         EncodingManager em = EncodingManager.create(encoder);
-        GraphHopperStorage graph = new GraphBuilder(em).create();
+        BaseGraph graph = new BaseGraph.Builder(em).create();
         NodeAccess na = graph.getNodeAccess();
         na.setNode(0, 48.0, 11.0);
         na.setNode(1, 48.1, 11.1);
@@ -56,16 +55,17 @@ public class PriorityRoutingTest {
         na.setNode(5, 48.2, 11.1);
         // 0 - 1 - 2 - 3
         //  \- 4 - 5 -/
+        double speed = encoder.getAverageSpeedEnc().getNextStorableValue(30);
         double dist1 = 0;
-        dist1 += maxSpeedEdge(em, graph, 0, 1, encoder, 1.0).getDistance();
-        dist1 += maxSpeedEdge(em, graph, 1, 2, encoder, 1.0).getDistance();
-        dist1 += maxSpeedEdge(em, graph, 2, 3, encoder, 1.0).getDistance();
+        dist1 += addEdge(em, graph, 0, 1, encoder, 1.0, speed).getDistance();
+        dist1 += addEdge(em, graph, 1, 2, encoder, 1.0, speed).getDistance();
+        dist1 += addEdge(em, graph, 2, 3, encoder, 1.0, speed).getDistance();
 
         final double maxPrio = PriorityCode.getFactor(PriorityCode.BEST.getValue());
         double dist2 = 0;
-        dist2 += maxSpeedEdge(em, graph, 0, 4, encoder, maxPrio).getDistance();
-        dist2 += maxSpeedEdge(em, graph, 4, 5, encoder, maxPrio).getDistance();
-        dist2 += maxSpeedEdge(em, graph, 5, 3, encoder, maxPrio).getDistance();
+        dist2 += addEdge(em, graph, 0, 4, encoder, maxPrio, speed).getDistance();
+        dist2 += addEdge(em, graph, 4, 5, encoder, maxPrio, speed).getDistance();
+        dist2 += addEdge(em, graph, 5, 3, encoder, maxPrio, speed).getDistance();
 
         // the routes 0-1-2-3 and 0-4-5-3 have similar distances (and use max speed everywhere)
         // ... but the shorter route 0-1-2-3 has smaller priority
@@ -93,7 +93,7 @@ public class PriorityRoutingTest {
         {
             CustomModel customModel = new CustomModel();
             // now we even increase the priority in the custom model, which also needs to be accounted for in weighting.getMinWeight
-            customModel.addToPriority(Statement.If("road_class == MOTORWAY", Statement.Op.MULTIPLY, 3));
+            customModel.addToPriority(Statement.If("road_class == MOTORWAY", Statement.Op.MULTIPLY, "3"));
             CustomWeighting weighting = CustomModelParser.createWeighting(encoder, em, TurnCostProvider.NO_TURN_COST_PROVIDER, customModel);
             Path pathDijkstra = new Dijkstra(graph, weighting, TraversalMode.NODE_BASED).calcPath(0, 3);
             Path pathAStar = new AStar(graph, weighting, TraversalMode.NODE_BASED).calcPath(0, 3);
@@ -102,20 +102,20 @@ public class PriorityRoutingTest {
         }
     }
 
-    private EdgeIteratorState maxSpeedEdge(EncodingManager em, GraphHopperStorage graph, int p, int q, FlagEncoder encoder, double prio) {
+    private EdgeIteratorState addEdge(EncodingManager em, BaseGraph graph, int p, int q, FlagEncoder encoder, double prio, double speed) {
         BooleanEncodedValue accessEnc = encoder.getAccessEnc();
         DecimalEncodedValue speedEnc = encoder.getAverageSpeedEnc();
         DecimalEncodedValue priorityEnc = em.getDecimalEncodedValue(EncodingManager.getKey(encoder, "priority"));
         EnumEncodedValue<RoadClass> roadClassEnc = em.getEnumEncodedValue(RoadClass.KEY, RoadClass.class);
         return graph.edge(p, q)
                 .set(accessEnc, true)
-                .set(speedEnc, encoder.getMaxSpeed())
+                .set(speedEnc, speed)
                 .set(priorityEnc, prio)
                 .set(roadClassEnc, RoadClass.MOTORWAY)
                 .setDistance(calcDist(graph, p, q));
     }
 
-    private double calcDist(GraphHopperStorage graph, int p, int q) {
+    private double calcDist(BaseGraph graph, int p, int q) {
         NodeAccess na = graph.getNodeAccess();
         return DistanceCalcEarth.DIST_EARTH.calcDist(na.getLat(p), na.getLon(p), na.getLat(q), na.getLon(q));
     }

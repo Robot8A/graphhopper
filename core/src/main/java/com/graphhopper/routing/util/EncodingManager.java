@@ -17,21 +17,14 @@
  */
 package com.graphhopper.routing.util;
 
-import com.graphhopper.reader.OSMTurnRelation;
-import com.graphhopper.reader.ReaderNode;
-import com.graphhopper.reader.ReaderRelation;
-import com.graphhopper.reader.ReaderWay;
-import com.graphhopper.reader.osm.conditional.DateRangeParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.graphhopper.jackson.Jackson;
 import com.graphhopper.routing.ev.*;
-import com.graphhopper.routing.util.parsers.*;
-import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.IntsRef;
-import com.graphhopper.storage.StorableProperties;
-import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.PMap;
 
+import java.io.UncheckedIOException;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.graphhopper.util.Helper.toLowerCase;
@@ -46,17 +39,10 @@ import static com.graphhopper.util.Helper.toLowerCase;
  * @author Nop
  */
 public class EncodingManager implements EncodedValueLookup {
-    private static final Pattern WAY_NAME_PATTERN = Pattern.compile("; *");
-    private final List<AbstractFlagEncoder> edgeEncoders = new ArrayList<>();
-    private final Map<String, EncodedValue> encodedValueMap = new LinkedHashMap<>();
-    private final List<RelationTagParser> relationTagParsers = new ArrayList<>();
-    private final List<TagParser> edgeTagParsers = new ArrayList<>();
-    private final Map<String, TurnCostParser> turnCostParsers = new LinkedHashMap<>();
-    private boolean enableInstructions = true;
-    private String preferredLanguage = "";
-    private EncodedValue.InitializerConfig turnCostConfig;
-    private EncodedValue.InitializerConfig relationConfig;
-    private EncodedValue.InitializerConfig edgeConfig;
+    private final LinkedHashMap<String, EncodedValue> encodedValueMap;
+    private final LinkedHashMap<String, VehicleEncodedValues> flagEncoders;
+    private final EncodedValue.InitializerConfig edgeConfig;
+    private final EncodedValue.InitializerConfig turnCostConfig;
 
     /**
      * Instantiate manager with the given list of encoders. The manager knows several default
@@ -94,264 +80,107 @@ public class EncodingManager implements EncodedValueLookup {
     }
 
     /**
-     * Create the EncodingManager from the provided GraphHopper location. Throws an
-     * IllegalStateException if it fails. Used if no EncodingManager specified on load.
-     */
-    public static EncodingManager create(EncodingManager.Builder builder, EncodedValueFactory evFactory, FlagEncoderFactory flagEncoderFactory, StorableProperties properties) {
-        String encodedValuesStr = properties.get("graph.encoded_values");
-        for (String evString : encodedValuesStr.split(",")) {
-            builder.addIfAbsent(evFactory, evString);
-        }
-        String flagEncoderValuesStr = properties.get("graph.flag_encoders");
-        for (String encoderString : flagEncoderValuesStr.split(",")) {
-            builder.addIfAbsent(flagEncoderFactory, encoderString);
-        }
-        return builder.build();
-    }
-
-    /**
      * Starts the build process of an EncodingManager
      */
     public static Builder start() {
         return new Builder();
     }
 
-    private EncodingManager() {
-        this.turnCostConfig = new EncodedValue.InitializerConfig();
-        this.relationConfig = new EncodedValue.InitializerConfig();
-        this.edgeConfig = new EncodedValue.InitializerConfig();
+    public EncodingManager(LinkedHashMap<String, EncodedValue> encodedValueMap, LinkedHashMap<String, VehicleEncodedValues> flagEncoders, EncodedValue.InitializerConfig edgeConfig, EncodedValue.InitializerConfig turnCostConfig) {
+        this.flagEncoders = flagEncoders;
+        this.encodedValueMap = encodedValueMap;
+        this.turnCostConfig = turnCostConfig;
+        this.edgeConfig = edgeConfig;
+        flagEncoders.values().forEach(f -> f.setEncodedValueLookup(this));
     }
 
-    public void releaseParsers() {
-        turnCostParsers.clear();
-        edgeTagParsers.clear();
-        relationTagParsers.clear();
+    private EncodingManager() {
+        this(new LinkedHashMap<>(), new LinkedHashMap<>(), new EncodedValue.InitializerConfig(), new EncodedValue.InitializerConfig());
     }
 
     public static class Builder {
-        private EncodingManager em;
-        private DateRangeParser dateRangeParser;
-        private final Map<String, AbstractFlagEncoder> flagEncoderMap = new LinkedHashMap<>();
-        private final Map<String, EncodedValue> encodedValueMap = new LinkedHashMap<>();
-        private final Set<TagParser> tagParserSet = new LinkedHashSet<>();
-        private final List<TurnCostParser> turnCostParsers = new ArrayList<>();
-        private final List<RelationTagParser> relationTagParsers = new ArrayList<>();
-
-        public Builder() {
-            em = new EncodingManager();
-        }
-
-        /**
-         * This method specifies the preferred language for way names during import.
-         * <p>
-         * Language code as defined in ISO 639-1 or ISO 639-2.
-         * <ul>
-         * <li>If no preferred language is specified, only the default language with no tag will be
-         * imported.</li>
-         * <li>If a language is specified, it will be imported if its tag is found, otherwise fall back
-         * to default language.</li>
-         * </ul>
-         */
-        public Builder setPreferredLanguage(String language) {
-            check();
-            em.setPreferredLanguage(language);
-            return this;
-        }
-
-        /**
-         * This method specifies if the import should include way names to be able to return
-         * instructions for a route.
-         */
-        public Builder setEnableInstructions(boolean enable) {
-            check();
-            em.setEnableInstructions(enable);
-            return this;
-        }
-
-        public boolean addIfAbsent(FlagEncoderFactory factory, String flagEncoderString) {
-            check();
-            String key = flagEncoderString.split("\\|")[0].trim();
-            if (flagEncoderMap.containsKey(key))
-                return false;
-            FlagEncoder fe = parseEncoderString(factory, flagEncoderString);
-            flagEncoderMap.put(fe.toString(), (AbstractFlagEncoder) fe);
-            return true;
-        }
-
-        public boolean addIfAbsent(EncodedValueFactory factory, String encodedValueString) {
-            check();
-            String key = encodedValueString.split("\\|")[0].trim();
-            if (encodedValueMap.containsKey(key))
-                return false;
-            EncodedValue ev = parseEncodedValueString(factory, encodedValueString);
-            encodedValueMap.put(ev.getName(), ev);
-            return true;
-        }
-
-        public boolean addIfAbsent(TagParserFactory factory, String tagParserString) {
-            check();
-            tagParserString = tagParserString.trim();
-            if (tagParserString.isEmpty()) return false;
-
-            TagParser tagParser = em.parseEncodedValueString(factory, tagParserString);
-            return tagParserSet.add(tagParser);
-        }
-
-        public Builder addTurnCostParser(TurnCostParser parser) {
-            check();
-            turnCostParsers.add(parser);
-            return this;
-        }
-
-        public Builder addRelationTagParser(RelationTagParser tagParser) {
-            check();
-            relationTagParsers.add(tagParser);
-            return this;
-        }
+        private EncodingManager em = new EncodingManager();
 
         public Builder add(FlagEncoder encoder) {
-            check();
-            if (flagEncoderMap.containsKey(encoder.toString()))
-                throw new IllegalArgumentException("FlagEncoder already exists: " + encoder);
-            flagEncoderMap.put(encoder.toString(), (AbstractFlagEncoder) encoder);
+            checkNotBuiltAlready();
+            if (em.hasEncoder(encoder.getName()))
+                throw new IllegalArgumentException("FlagEncoder already exists: " + encoder.getName());
+            VehicleEncodedValues v = (VehicleEncodedValues) encoder;
+            v.setEncodedValueLookup(em);
+            List<EncodedValue> list = new ArrayList<>();
+            v.createEncodedValues(list);
+            list.forEach(this::add);
+
+            list = new ArrayList<>();
+            v.createTurnCostEncodedValues(list);
+            list.forEach(this::addTurnCostEncodedValue);
+
+            em.flagEncoders.put(v.getName(), v);
             return this;
         }
 
         public Builder add(EncodedValue encodedValue) {
-            check();
-            if (encodedValueMap.containsKey(encodedValue.getName()))
+            checkNotBuiltAlready();
+            if (em.hasEncodedValue(encodedValue.getName()))
                 throw new IllegalArgumentException("EncodedValue already exists: " + encodedValue.getName());
-            encodedValueMap.put(encodedValue.getName(), encodedValue);
+            encodedValue.init(em.edgeConfig);
+            em.encodedValueMap.put(encodedValue.getName(), encodedValue);
             return this;
         }
 
-        /**
-         * This method adds the specified TagParser and automatically adds EncodedValues as requested in
-         * createEncodedValues.
-         */
-        public Builder add(TagParser tagParser) {
-            check();
-            if (!tagParserSet.add(tagParser))
-                throw new IllegalArgumentException("TagParser already exists: " + tagParser);
-
+        public Builder addTurnCostEncodedValue(EncodedValue turnCostEnc) {
+            checkNotBuiltAlready();
+            if (em.hasEncodedValue(turnCostEnc.getName()))
+                throw new IllegalArgumentException("Already defined: " + turnCostEnc.getName() + ". Please note that " +
+                        "EncodedValues for edges and turn costs are in the same namespace.");
+            turnCostEnc.init(em.turnCostConfig);
+            em.encodedValueMap.put(turnCostEnc.getName(), turnCostEnc);
             return this;
         }
 
-        public Builder setDateRangeParser(DateRangeParser dateRangeParser) {
-            check();
-            this.dateRangeParser = dateRangeParser;
-            return this;
-        }
-
-        private void check() {
+        private void checkNotBuiltAlready() {
             if (em == null)
                 throw new IllegalStateException("Cannot call method after Builder.build() was called");
         }
 
-        private void _addEdgeTagParser(TagParser tagParser, boolean withNamespace) {
-            if (!em.edgeEncoders.isEmpty())
-                throw new IllegalStateException("Avoid mixing encoded values from FlagEncoder with shared encoded values until we have a more clever mechanism, see #1862");
-
-            List<EncodedValue> list = new ArrayList<>();
-            tagParser.createEncodedValues(em, list);
-            for (EncodedValue ev : list) {
-                em.addEncodedValue(ev, withNamespace);
-            }
-            em.edgeTagParsers.add(tagParser);
-        }
-
-        private void _addRelationTagParser(RelationTagParser tagParser) {
-            List<EncodedValue> list = new ArrayList<>();
-            tagParser.createRelationEncodedValues(em, list);
-            for (EncodedValue ev : list) {
-                ev.init(em.relationConfig);
-            }
-            em.relationTagParsers.add(tagParser);
-
-            _addEdgeTagParser(tagParser, false);
-        }
-
-        private void _addTurnCostParser(TurnCostParser parser) {
-            List<EncodedValue> list = new ArrayList<>();
-            parser.createTurnCostEncodedValues(em, list);
-            for (EncodedValue ev : list) {
-                ev.init(em.turnCostConfig);
-                if (em.encodedValueMap.containsKey(ev.getName()))
-                    throw new IllegalArgumentException("Already defined: " + ev.getName() + ". Please note that " +
-                            "EncodedValues for edges and turn cost are in the same namespace.");
-                em.encodedValueMap.put(ev.getName(), ev);
-            }
-            em.turnCostParsers.put(parser.getName(), parser);
-        }
-
         public EncodingManager build() {
-            check();
+            checkNotBuiltAlready();
+            addDefaultEncodedValues();
+            if (em.encodedValueMap.isEmpty())
+                throw new IllegalStateException("No EncodedValues were added to the EncodingManager");
+            EncodingManager result = em;
+            em = null;
+            return result;
+        }
 
-            for (RelationTagParser tagParser : relationTagParsers) {
-                _addRelationTagParser(tagParser);
-            }
-
-            for (TagParser tagParser : tagParserSet) {
-                _addEdgeTagParser(tagParser, false);
-            }
-
-            for (EncodedValue ev : encodedValueMap.values()) {
-                em.addEncodedValue(ev, false);
-            }
-
+        private void addDefaultEncodedValues() {
+            // todo: I think ultimately these should all be removed and must be added explicitly
             if (!em.hasEncodedValue(Roundabout.KEY))
-                _addEdgeTagParser(new OSMRoundaboutParser(), false);
+                add(Roundabout.create());
             if (!em.hasEncodedValue(RoadClass.KEY))
-                _addEdgeTagParser(new OSMRoadClassParser(), false);
+                add(new EnumEncodedValue<>(RoadClass.KEY, RoadClass.class));
             if (!em.hasEncodedValue(RoadClassLink.KEY))
-                _addEdgeTagParser(new OSMRoadClassLinkParser(), false);
+                add(new SimpleBooleanEncodedValue(RoadClassLink.KEY));
             if (!em.hasEncodedValue(RoadEnvironment.KEY))
-                _addEdgeTagParser(new OSMRoadEnvironmentParser(), false);
+                add(new EnumEncodedValue<>(RoadEnvironment.KEY, RoadEnvironment.class));
             if (!em.hasEncodedValue(MaxSpeed.KEY))
-                _addEdgeTagParser(new OSMMaxSpeedParser(), false);
-            if (!em.hasEncodedValue(RoadAccess.KEY)) {
-                // TODO introduce road_access for different vehicles? But how to create it in DefaultTagParserFactory?
-                _addEdgeTagParser(new OSMRoadAccessParser(), false);
-            }
+                add(MaxSpeed.create());
+            if (!em.hasEncodedValue(RoadAccess.KEY))
+                add(new EnumEncodedValue<>(RoadAccess.KEY, RoadAccess.class));
 
-            if (dateRangeParser == null)
-                dateRangeParser = new DateRangeParser(DateRangeParser.createCalendar());
-
-            for (AbstractFlagEncoder encoder : flagEncoderMap.values()) {
-                if (encoder instanceof BikeCommonFlagEncoder) {
-                    if (!em.hasEncodedValue(RouteNetwork.key("bike")))
-                        _addRelationTagParser(new OSMBikeNetworkTagParser());
+            for (VehicleEncodedValues encoder : em.flagEncoders.values()) {
+                if (encoder.getName().contains("bike") || encoder.getName().contains("mtb")) {
+                    if (!em.hasEncodedValue(BikeNetwork.KEY))
+                        add(new EnumEncodedValue<>(BikeNetwork.KEY, RouteNetwork.class));
                     if (!em.hasEncodedValue(GetOffBike.KEY))
-                        _addEdgeTagParser(new OSMGetOffBikeParser(), false);
+                        add(GetOffBike.create());
                     if (!em.hasEncodedValue(Smoothness.KEY))
-                        _addEdgeTagParser(new OSMSmoothnessParser(), false);
-                } else if (encoder instanceof FootFlagEncoder) {
-                    if (!em.hasEncodedValue(RouteNetwork.key("foot")))
-                        _addRelationTagParser(new OSMFootNetworkTagParser());
+                        add(new EnumEncodedValue<>(Smoothness.KEY, Smoothness.class));
+                } else if (encoder.getName().contains("foot") || encoder.getName().contains("hike") || encoder.getName().contains("wheelchair")) {
+                    if (!em.hasEncodedValue(FootNetwork.KEY))
+                        add(new EnumEncodedValue<>(FootNetwork.KEY, RouteNetwork.class));
                 }
             }
-
-            for (AbstractFlagEncoder encoder : flagEncoderMap.values()) {
-                encoder.init(dateRangeParser);
-                em.addEncoder(encoder);
-            }
-
-            for (TurnCostParser parser : turnCostParsers) {
-                _addTurnCostParser(parser);
-            }
-
-            // FlagEncoder can demand TurnCostParsers => add them after the explicitly added ones
-            for (AbstractFlagEncoder encoder : flagEncoderMap.values()) {
-                if (encoder.supportsTurnCosts() && !em.turnCostParsers.containsKey(encoder.toString()))
-                    _addTurnCostParser(new OSMTurnRelationParser(encoder.toString(), encoder.getMaxTurnCosts(), encoder.getRestrictions()));
-            }
-
-            if (em.encodedValueMap.isEmpty())
-                throw new IllegalStateException("No EncodedValues found");
-
-            EncodingManager tmp = em;
-            em = null;
-            return tmp;
         }
     }
 
@@ -372,88 +201,16 @@ public class EncodingManager implements EncodedValueLookup {
         return factory.createFlagEncoder(encoderString, configuration);
     }
 
-    static EncodedValue parseEncodedValueString(EncodedValueFactory factory, String encodedValueString) {
-        if (!encodedValueString.equals(toLowerCase(encodedValueString)))
-            throw new IllegalArgumentException("Use lower case for EncodedValues: " + encodedValueString);
-
-        encodedValueString = encodedValueString.trim();
-        if (encodedValueString.isEmpty())
-            throw new IllegalArgumentException("EncodedValue cannot be empty. " + encodedValueString);
-
-        EncodedValue evObject = factory.create(encodedValueString);
-        PMap map = new PMap(encodedValueString);
-        if (!map.has("version"))
-            throw new IllegalArgumentException("EncodedValue must have a version specified but it was " + encodedValueString);
-        return evObject;
-    }
-
-    private TagParser parseEncodedValueString(TagParserFactory factory, String tagParserString) {
-        if (!tagParserString.equals(toLowerCase(tagParserString)))
-            throw new IllegalArgumentException("Use lower case for TagParser: " + tagParserString);
-
-        PMap map = new PMap(tagParserString);
-        return factory.create(tagParserString, map);
-    }
-
-    static String fixWayName(String str) {
-        if (str == null)
-            return "";
-        return WAY_NAME_PATTERN.matcher(str).replaceAll(", ");
-    }
-
     public int getIntsForFlags() {
-        return (int) Math.ceil((double) edgeConfig.getRequiredBits() / 32.0);
-    }
-
-    private void setEnableInstructions(boolean enableInstructions) {
-        this.enableInstructions = enableInstructions;
-    }
-
-    public boolean isEnableInstructions() {
-        return enableInstructions;
-    }
-
-    private void setPreferredLanguage(String preferredLanguage) {
-        if (preferredLanguage == null)
-            throw new IllegalArgumentException("preferred language cannot be null");
-
-        this.preferredLanguage = preferredLanguage;
-    }
-
-    private void addEncoder(AbstractFlagEncoder encoder) {
-        int encoderCount = edgeEncoders.size();
-
-        encoder.setEncodedValueLookup(this);
-        List<EncodedValue> list = new ArrayList<>();
-        encoder.createEncodedValues(list, encoder.toString(), encoderCount);
-        for (EncodedValue ev : list) {
-            addEncodedValue(ev, true);
-        }
-
-        edgeEncoders.add(encoder);
-    }
-
-    private void addEncodedValue(EncodedValue ev, boolean withNamespace) {
-        String normalizedKey = ev.getName().replaceAll(SPECIAL_SEPARATOR, "_");
-        if (hasEncodedValue(normalizedKey))
-            throw new IllegalStateException("EncodedValue " + ev.getName() + " collides with " + normalizedKey);
-        if (!withNamespace && !isSharedEncodedValues(ev))
-            throw new IllegalArgumentException("EncodedValue " + ev.getName() + " must not contain namespace character '" + SPECIAL_SEPARATOR + "'");
-        if (withNamespace && isSharedEncodedValues(ev))
-            throw new IllegalArgumentException("EncodedValue " + ev.getName() + " must contain namespace character '" + SPECIAL_SEPARATOR + "'");
-        ev.init(edgeConfig);
-        encodedValueMap.put(ev.getName(), ev);
+        return edgeConfig.getRequiredInts();
     }
 
     public boolean hasEncodedValue(String key) {
         return encodedValueMap.get(key) != null;
     }
 
-    /**
-     * @return true if the specified encoder is found
-     */
     public boolean hasEncoder(String encoder) {
-        return getEncoder(encoder, false) != null;
+        return flagEncoders.containsKey(encoder);
     }
 
     public FlagEncoder getEncoder(String name) {
@@ -461,165 +218,36 @@ public class EncodingManager implements EncodedValueLookup {
     }
 
     private FlagEncoder getEncoder(String name, boolean throwExc) {
-        for (FlagEncoder encoder : edgeEncoders) {
-            if (name.equalsIgnoreCase(encoder.toString()))
-                return encoder;
-        }
-        if (throwExc)
-            throw new IllegalArgumentException("FlagEncoder for " + name + " not found. Existing: " + toFlagEncodersAsString());
-        return null;
+        VehicleEncodedValues flagEncoder = flagEncoders.get(name);
+        if (flagEncoder == null && throwExc)
+            throw new IllegalArgumentException("FlagEncoder " + name + " not found. Existing: " + flagEncoders.keySet());
+        return flagEncoder;
     }
 
-    /**
-     * Determine whether a way is routable for one of the added encoders.
-     *
-     * @return if at least one encoder consumes the specified way. Additionally the specified acceptWay is changed
-     * to provide more details.
-     */
-    public boolean acceptWay(ReaderWay way, AcceptWay acceptWay) {
-        if (!acceptWay.isEmpty())
-            throw new IllegalArgumentException("AcceptWay must be empty");
-
-        for (AbstractFlagEncoder encoder : edgeEncoders) {
-            acceptWay.put(encoder.toString(), encoder.getAccess(way));
-        }
-        return acceptWay.hasAccepted();
+    public String toFlagEncodersAsString() {
+        return flagEncoders.values().stream().map(VehicleEncodedValues::toSerializationString).collect(Collectors.joining(","));
     }
 
-    public static class AcceptWay {
-        private Map<String, Access> accessMap;
-        boolean hasAccepted = false;
-        boolean isFerry = false;
-
-        public AcceptWay() {
-            this.accessMap = new HashMap<>(5);
-        }
-
-        private Access get(String key) {
-            Access res = accessMap.get(key);
-            if (res == null)
-                throw new IllegalArgumentException("Couldn't fetch Access value for encoder key " + key);
-
-            return res;
-        }
-
-        public AcceptWay put(String key, Access access) {
-            accessMap.put(key, access);
-            if (access != Access.CAN_SKIP)
-                hasAccepted = true;
-            if (access == Access.FERRY)
-                isFerry = true;
-            return this;
-        }
-
-        public boolean isEmpty() {
-            return accessMap.isEmpty();
-        }
-
-        /**
-         * At least one of the entries is not CAN_SKIP
-         */
-        public boolean hasAccepted() {
-            return hasAccepted;
-        }
-
-        /**
-         * At least one of the entries is FERRY (usually all entries)
-         */
-        public boolean isFerry() {
-            return isFerry;
+    public String toEncodedValuesAsString() {
+        List<String> serializedEVsList = encodedValueMap.values().stream().map(EncodedValueSerializer::serializeEncodedValue).collect(Collectors.toList());
+        try {
+            return Jackson.newObjectMapper().writeValueAsString(serializedEVsList);
+        } catch (JsonProcessingException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    public enum Access {
-        WAY, FERRY, OTHER, CAN_SKIP;
-
-        public boolean isFerry() {
-            return this.ordinal() == FERRY.ordinal();
-        }
-
-        public boolean isWay() {
-            return this.ordinal() == WAY.ordinal();
-        }
-
-        public boolean isOther() {
-            return this.ordinal() == OTHER.ordinal();
-        }
-
-        public boolean canSkip() {
-            return this.ordinal() == CAN_SKIP.ordinal();
-        }
+    public String toEdgeConfigAsString() {
+        return EncodedValueSerializer.serializeInitializerConfig(edgeConfig);
     }
 
-    public IntsRef handleRelationTags(ReaderRelation relation, IntsRef relFlags) {
-        for (RelationTagParser relParser : relationTagParsers) {
-            relParser.handleRelationTags(relFlags, relation);
-        }
-        return relFlags;
-    }
-
-    public void handleTurnRelationTags(OSMTurnRelation turnRelation, TurnCostParser.ExternalInternalMap map, Graph graph) {
-        for (TurnCostParser parser : turnCostParsers.values()) {
-            parser.handleTurnRelationTags(turnRelation, map, graph);
-        }
-    }
-
-    /**
-     * Processes way properties of different kind to determine speed and direction.
-     *
-     * @param relationFlags The preprocessed relation flags is used to influence the way properties.
-     */
-    public IntsRef handleWayTags(ReaderWay way, AcceptWay acceptWay, IntsRef relationFlags) {
-        IntsRef edgeFlags = createEdgeFlags();
-        for (TagParser parser : edgeTagParsers) {
-            parser.handleWayTags(edgeFlags, way, acceptWay.isFerry(), relationFlags);
-        }
-        for (AbstractFlagEncoder encoder : edgeEncoders) {
-            encoder.handleWayTags(edgeFlags, way, acceptWay.get(encoder.toString()));
-        }
-        return edgeFlags;
+    public String toTurnCostConfigAsString() {
+        return EncodedValueSerializer.serializeInitializerConfig(turnCostConfig);
     }
 
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder();
-        for (FlagEncoder encoder : edgeEncoders) {
-            if (str.length() > 0)
-                str.append(",");
-
-            str.append(encoder.toString());
-        }
-
-        return str.toString();
-    }
-
-    public String toFlagEncodersAsString() {
-        StringBuilder str = new StringBuilder();
-        for (AbstractFlagEncoder encoder : edgeEncoders) {
-            if (str.length() > 0)
-                str.append(",");
-
-            str.append(encoder.toString())
-                    .append("|")
-                    .append(encoder.getPropertiesString());
-        }
-
-        return str.toString();
-    }
-
-    public String toEncodedValuesAsString() {
-        StringBuilder str = new StringBuilder();
-        for (EncodedValue ev : encodedValueMap.values()) {
-            if (!isSharedEncodedValues(ev))
-                continue;
-
-            if (str.length() > 0)
-                str.append(",");
-
-            str.append(ev.toString());
-        }
-
-        return str.toString();
+        return flagEncoders.values().stream().map(Object::toString).collect(Collectors.joining(","));
     }
 
     // TODO hide IntsRef even more in a later version: https://gist.github.com/karussell/f4c2b2b1191be978d7ee9ec8dd2cd48f
@@ -632,83 +260,15 @@ public class EncodingManager implements EncodedValueLookup {
         return new IntsRef(2);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EncodingManager that = (EncodingManager) o;
-        return enableInstructions == that.enableInstructions &&
-                edgeEncoders.equals(that.edgeEncoders) &&
-                encodedValueMap.equals(that.encodedValueMap) &&
-                preferredLanguage.equals(that.preferredLanguage);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(edgeEncoders, encodedValueMap, enableInstructions, preferredLanguage);
-    }
-
-    /**
-     * Analyze tags on osm node. Store node tags (barriers etc) for later usage while parsing way.
-     */
-    public long handleNodeTags(ReaderNode node) {
-        long flags = 0;
-        for (AbstractFlagEncoder encoder : edgeEncoders) {
-            flags |= encoder.handleNodeTags(node);
-        }
-
-        return flags;
-    }
-
-    public void applyWayTags(ReaderWay way, EdgeIteratorState edge) {
-        // storing the road name does not yet depend on the flagEncoder so manage it directly
-        if (enableInstructions) {
-            // String wayInfo = carFlagEncoder.getWayInfo(way);
-            // http://wiki.openstreetmap.org/wiki/Key:name
-            String name = "";
-            if (!preferredLanguage.isEmpty())
-                name = fixWayName(way.getTag("name:" + preferredLanguage));
-            if (name.isEmpty())
-                name = fixWayName(way.getTag("name"));
-            // http://wiki.openstreetmap.org/wiki/Key:ref
-            String refName = fixWayName(way.getTag("ref"));
-            if (!refName.isEmpty()) {
-                if (name.isEmpty())
-                    name = refName;
-                else
-                    name += ", " + refName;
-            }
-
-            edge.setName(name);
-        }
-
-        if (Double.isInfinite(edge.getDistance()))
-            throw new IllegalStateException("Infinite distance should not happen due to #435. way ID=" + way.getId());
-        for (AbstractFlagEncoder encoder : edgeEncoders) {
-            encoder.applyWayTags(way, edge);
-        }
-    }
-
     public List<FlagEncoder> fetchEdgeEncoders() {
-        return new ArrayList<>(edgeEncoders);
+        return new ArrayList<>(flagEncoders.values());
     }
 
     public boolean needsTurnCostsSupport() {
-        for (FlagEncoder encoder : edgeEncoders) {
+        for (FlagEncoder encoder : flagEncoders.values())
             if (encoder.supportsTurnCosts())
                 return true;
-        }
         return false;
-    }
-
-    public List<BooleanEncodedValue> getAccessEncFromNodeFlags(long importNodeFlags) {
-        List<BooleanEncodedValue> list = new ArrayList<>(edgeEncoders.size());
-        for (int i = 0; i < edgeEncoders.size(); i++) {
-            FlagEncoder encoder = edgeEncoders.get(i);
-            if (((1L << i) & importNodeFlags) != 0)
-                list.add(encoder.getAccessEnc());
-        }
-        return list;
     }
 
     @Override
@@ -745,15 +305,10 @@ public class EncodingManager implements EncodedValueLookup {
     @Override
     public <T extends EncodedValue> T getEncodedValue(String key, Class<T> encodedValueType) {
         EncodedValue ev = encodedValueMap.get(key);
+        // todo: why do we not just return null when EV is missing? just like java.util.Map? -> https://github.com/graphhopper/graphhopper/pull/2561#discussion_r859770067
         if (ev == null)
-            throw new IllegalArgumentException("Cannot find EncodedValue " + key + " in collection: " + ev);
+            throw new IllegalArgumentException("Cannot find EncodedValue " + key + " in collection: " + encodedValueMap.keySet());
         return (T) ev;
-    }
-
-    private static final String SPECIAL_SEPARATOR = "$";
-
-    private static boolean isSharedEncodedValues(EncodedValue ev) {
-        return isValidEncodedValue(ev.getName()) && !ev.getName().contains(SPECIAL_SEPARATOR);
     }
 
     /**
@@ -765,7 +320,7 @@ public class EncodingManager implements EncodedValueLookup {
     }
 
     public static String getKey(String prefix, String str) {
-        return prefix + SPECIAL_SEPARATOR + str;
+        return prefix + "_" + str;
     }
 
     // copied from janino
@@ -795,13 +350,10 @@ public class EncodingManager implements EncodedValueLookup {
         // first character must be a lower case letter
         if (name.isEmpty() || !isLowerLetter(name.charAt(0)) || KEYWORDS.contains(name)) return false;
 
-        int dollarCount = 0, underscoreCount = 0;
+        int underscoreCount = 0;
         for (int i = 1; i < name.length(); i++) {
             char c = name.charAt(i);
-            if (c == '$') {
-                if (dollarCount > 0) return false;
-                dollarCount++;
-            } else if (c == '_') {
+            if (c == '_') {
                 if (underscoreCount > 0) return false;
                 underscoreCount++;
             } else if (!isLowerLetter(c) && !isNumber(c)) {

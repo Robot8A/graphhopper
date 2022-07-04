@@ -29,12 +29,11 @@ import com.graphhopper.routing.ev.EncodedValueLookup;
  */
 public interface FlagEncoder extends EncodedValueLookup {
 
-    TransportationMode getTransportationMode();
+    String getName();
 
-    /**
-     * @return the maximum speed in km/h
-     */
-    double getMaxSpeed();
+    boolean isMotorVehicle();
+
+    boolean isHGV();
 
     /**
      * This method returns the EncodedValue used for the direction-dependent access properties of this encoder.
@@ -46,13 +45,14 @@ public interface FlagEncoder extends EncodedValueLookup {
      */
     DecimalEncodedValue getAverageSpeedEnc();
 
+    DecimalEncodedValue getPriorityEnc();
+
+    DecimalEncodedValue getCurvatureEnc();
+
+    DecimalEncodedValue getTurnCostEnc();
+
     boolean supportsTurnCosts();
 
-    /**
-     * Returns true if the feature class is supported like TurnWeighting or PriorityWeighting.
-     * Use support(String) instead.
-     */
-    boolean supports(Class<?> feature);
 
     /**
      * @return true if already registered in an EncodingManager

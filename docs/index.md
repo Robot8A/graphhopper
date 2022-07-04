@@ -18,7 +18,7 @@ For bugs see our contribute section below.
 
 ## Installation
 
-Install the web demo 'GraphHopper Maps' with [this user installation guide](./web/quickstart.md) on your
+Install the GraphHopper routing engine with the GraphHopper Maps UI with [this installation guide](../README.md#installation) on your
 machine. This will also install a web API that can be used in many programming languages.
 
  * [Routing API](./web/api-doc.md): Documentation of the Web API to communicate with any GraphHopper server via http.
@@ -48,6 +48,7 @@ Read [here](../CONTRIBUTING.md) on how to contribute as a developer and translat
 Various topics are explained in more detail separately:
 
  * [Technical overview](./core/technical.md): Technical details about how GraphHopper its calculations are working.
+ * [Custom models](./core/custom-models.md): This tutorial explains how to customize an existing vehicle profile to your needs without to know Java.
  * [Simple routing](./core/routing.md): Tutorial how to integrate GraphHopper in your Java application (or pick any JVM language)
  * [Create custom weighting](./core/weighting.md): Documentation about how to create a custom weighting class to influence the track calculation.
  * [Import GTFS](../reader-gtfs): Simple steps to get GTFS import and routing done.
@@ -78,7 +79,8 @@ See the necessary changes for modern iOS and GraphHopper 1.0 in [this pull reque
 
 #### Windows
 
-Documentation about how to get an GraphHopper instance running on windows via cygwin is available [here](./core/windows-setup.md).
+Install the Windows Subsystem for Linux (WSL) or cygwin and follow the
+[normal installation steps](../README.md#installation).
 
 #### Eclipse
 

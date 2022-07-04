@@ -1,15 +1,15 @@
 package com.graphhopper.isochrone.algorithm;
 
 import com.graphhopper.routing.ev.BooleanEncodedValue;
+import com.graphhopper.routing.ev.DecimalEncodedValue;
 import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.FastestWeighting;
 import com.graphhopper.routing.weighting.TurnCostProvider;
+import com.graphhopper.storage.BaseGraph;
 import com.graphhopper.storage.Graph;
-import com.graphhopper.storage.GraphHopperStorage;
-import com.graphhopper.storage.RAMDirectory;
 import com.graphhopper.util.GHUtility;
 import com.graphhopper.util.PMap;
 import org.junit.jupiter.api.AfterEach;
@@ -62,14 +62,14 @@ public class ShortestPathTreeTest {
 
     private final EncodingManager encodingManager = EncodingManager.create("car");
     private final FlagEncoder carEncoder = encodingManager.getEncoder("car");
-    private GraphHopperStorage graph;
+    private final BooleanEncodedValue accessEnc = carEncoder.getAccessEnc();
+    private final DecimalEncodedValue speedEnc = carEncoder.getAverageSpeedEnc();
+    private BaseGraph graph;
 
 
     @BeforeEach
     public void setUp() {
-        graph = new GraphHopperStorage(new RAMDirectory(), encodingManager, false);
-        graph.create(1000);
-
+        graph = new BaseGraph.Builder(encodingManager).create();
         //         8
         //        /
         // 0-1-2-3
@@ -77,31 +77,30 @@ public class ShortestPathTreeTest {
         // 4-5-- |
         // |/ \--7
         // 6----/
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(0, 1).setDistance(70));
-        GHUtility.setSpeed(20, true, false, carEncoder, ((Graph) graph).edge(0, 4).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(0, 1).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(0, 4).setDistance(50));
 
-        GHUtility.setSpeed(10, true, true, carEncoder, ((Graph) graph).edge(1, 4).setDistance(70));
-        GHUtility.setSpeed(10, true, true, carEncoder, ((Graph) graph).edge(1, 5).setDistance(70));
-        GHUtility.setSpeed(10, true, true, carEncoder, ((Graph) graph).edge(1, 2).setDistance(200));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 4).setDistance(70));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 5).setDistance(70));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 2).setDistance(200));
 
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(5, 2).setDistance(50));
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(2, 3).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 2).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(2, 3).setDistance(50));
 
-        GHUtility.setSpeed(20, true, false, carEncoder, ((Graph) graph).edge(5, 3).setDistance(110));
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(3, 7).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 3).setDistance(110));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(3, 7).setDistance(70));
 
-        GHUtility.setSpeed(20, true, false, carEncoder, ((Graph) graph).edge(4, 6).setDistance(50));
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(5, 4).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(4, 6).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 4).setDistance(70));
 
-        GHUtility.setSpeed(10, true, false, carEncoder, ((Graph) graph).edge(5, 6).setDistance(70));
-        GHUtility.setSpeed(20, true, false, carEncoder, ((Graph) graph).edge(7, 5).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 6).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(7, 5).setDistance(50));
 
-        GHUtility.setSpeed(20, true, true, carEncoder, ((Graph) graph).edge(6, 7).setDistance(50));
-        GHUtility.setSpeed(20, true, true, carEncoder, ((Graph) graph).edge(3, 8).setDistance(25));
+        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, ((Graph) graph).edge(6, 7).setDistance(50));
+        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, ((Graph) graph).edge(3, 8).setDistance(25));
     }
 
-    private int countDirectedEdges(GraphHopperStorage graph) {
-        BooleanEncodedValue accessEnc = carEncoder.getAccessEnc();
+    private int countDirectedEdges(BaseGraph graph) {
         int result = 0;
         AllEdgesIterator iter = graph.getAllEdges();
         while (iter.next()) {

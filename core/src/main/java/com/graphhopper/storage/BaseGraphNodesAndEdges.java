@@ -18,7 +18,9 @@
 
 package com.graphhopper.storage;
 
+import com.graphhopper.util.Constants;
 import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.GHUtility;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.shapes.BBox;
 
@@ -46,7 +48,7 @@ class BaseGraphNodesAndEdges {
 
     // edges
     private final DataAccess edges;
-    private final int E_NODEA, E_NODEB, E_LINKA, E_LINKB, E_FLAGS, E_DIST, E_GEO, E_NAME;
+    private final int E_NODEA, E_NODEB, E_LINKA, E_LINKB, E_FLAGS, E_DIST, E_GEO, E_KV;
     private final int intsForFlags;
     private int edgeEntryBytes;
     private int edgeCount;
@@ -61,8 +63,8 @@ class BaseGraphNodesAndEdges {
     private boolean frozen;
 
     public BaseGraphNodesAndEdges(Directory dir, int intsForFlags, boolean withElevation, boolean withTurnCosts, int segmentSize) {
-        nodes = dir.create("nodes", DAType.getPreferredInt(dir.getDefaultType()), segmentSize);
-        edges = dir.create("edges", DAType.getPreferredInt(dir.getDefaultType()), segmentSize);
+        nodes = dir.create("nodes", dir.getDefaultType("nodes", true), segmentSize);
+        edges = dir.create("edges", dir.getDefaultType("edges", true), segmentSize);
         this.intsForFlags = intsForFlags;
         this.withTurnCosts = withTurnCosts;
         this.withElevation = withElevation;
@@ -84,8 +86,8 @@ class BaseGraphNodesAndEdges {
         E_FLAGS = 16;
         E_DIST = E_FLAGS + intsForFlags * 4;
         E_GEO = E_DIST + 4;
-        E_NAME = E_GEO + 4;
-        edgeEntryBytes = E_NAME + 4;
+        E_KV = E_GEO + 4;
+        edgeEntryBytes = E_KV + 4;
     }
 
     public void create(long initSize) {
@@ -98,38 +100,50 @@ class BaseGraphNodesAndEdges {
             return false;
 
         // now load some properties from stored data
-        nodeEntryBytes = nodes.getHeader(0 * 4);
-        nodeCount = nodes.getHeader(1 * 4);
-        bounds.minLon = Helper.intToDegree(nodes.getHeader(2 * 4));
-        bounds.maxLon = Helper.intToDegree(nodes.getHeader(3 * 4));
-        bounds.minLat = Helper.intToDegree(nodes.getHeader(4 * 4));
-        bounds.maxLat = Helper.intToDegree(nodes.getHeader(5 * 4));
+        final int nodesVersion = nodes.getHeader(0 * 4);
+        GHUtility.checkDAVersion("nodes", Constants.VERSION_NODE, nodesVersion);
+        nodeEntryBytes = nodes.getHeader(1 * 4);
+        nodeCount = nodes.getHeader(2 * 4);
+        bounds.minLon = Helper.intToDegree(nodes.getHeader(3 * 4));
+        bounds.maxLon = Helper.intToDegree(nodes.getHeader(4 * 4));
+        bounds.minLat = Helper.intToDegree(nodes.getHeader(5 * 4));
+        bounds.maxLat = Helper.intToDegree(nodes.getHeader(6 * 4));
+        boolean hasElevation = nodes.getHeader(7 * 4) == 1;
+        if (hasElevation != withElevation)
+            // :( we should load data from disk to create objects, not the other way around!
+            throw new IllegalStateException("Configured dimension elevation=" + withElevation + " is not equal "
+                    + "to dimension of loaded graph elevation =" + hasElevation);
         if (withElevation) {
-            bounds.minEle = Helper.intToEle(nodes.getHeader(6 * 4));
-            bounds.maxEle = Helper.intToEle(nodes.getHeader(7 * 4));
+            bounds.minEle = Helper.intToEle(nodes.getHeader(8 * 4));
+            bounds.maxEle = Helper.intToEle(nodes.getHeader(9 * 4));
         }
-        frozen = nodes.getHeader(8 * 4) == 1;
+        frozen = nodes.getHeader(10 * 4) == 1;
 
-        edgeEntryBytes = edges.getHeader(0 * 4);
-        edgeCount = edges.getHeader(1 * 4);
+        final int edgesVersion = edges.getHeader(0 * 4);
+        GHUtility.checkDAVersion("edges", Constants.VERSION_EDGE, edgesVersion);
+        edgeEntryBytes = edges.getHeader(1 * 4);
+        edgeCount = edges.getHeader(2 * 4);
         return true;
     }
 
     public void flush() {
-        nodes.setHeader(0 * 4, nodeEntryBytes);
-        nodes.setHeader(1 * 4, nodeCount);
-        nodes.setHeader(2 * 4, Helper.degreeToInt(bounds.minLon));
-        nodes.setHeader(3 * 4, Helper.degreeToInt(bounds.maxLon));
-        nodes.setHeader(4 * 4, Helper.degreeToInt(bounds.minLat));
-        nodes.setHeader(5 * 4, Helper.degreeToInt(bounds.maxLat));
+        nodes.setHeader(0 * 4, Constants.VERSION_NODE);
+        nodes.setHeader(1 * 4, nodeEntryBytes);
+        nodes.setHeader(2 * 4, nodeCount);
+        nodes.setHeader(3 * 4, Helper.degreeToInt(bounds.minLon));
+        nodes.setHeader(4 * 4, Helper.degreeToInt(bounds.maxLon));
+        nodes.setHeader(5 * 4, Helper.degreeToInt(bounds.minLat));
+        nodes.setHeader(6 * 4, Helper.degreeToInt(bounds.maxLat));
+        nodes.setHeader(7 * 4, withElevation ? 1 : 0);
         if (withElevation) {
-            nodes.setHeader(6 * 4, Helper.eleToInt(bounds.minEle));
-            nodes.setHeader(7 * 4, Helper.eleToInt(bounds.maxEle));
+            nodes.setHeader(8 * 4, Helper.eleToInt(bounds.minEle));
+            nodes.setHeader(9 * 4, Helper.eleToInt(bounds.maxEle));
         }
-        nodes.setHeader(8 * 4, frozen ? 1 : 0);
+        nodes.setHeader(10 * 4, frozen ? 1 : 0);
 
-        edges.setHeader(0, edgeEntryBytes);
-        edges.setHeader(1 * 4, edgeCount);
+        edges.setHeader(0 * 4, Constants.VERSION_EDGE);
+        edges.setHeader(1 * 4, edgeEntryBytes);
+        edges.setHeader(2 * 4, edgeCount);
 
         edges.flush();
         nodes.flush();
@@ -262,8 +276,8 @@ class BaseGraphNodesAndEdges {
         edges.setInt(edgePointer + E_GEO, geoRef);
     }
 
-    public void setNameRef(long edgePointer, int nameRef) {
-        edges.setInt(edgePointer + E_NAME, nameRef);
+    public void setKeyValuesRef(long edgePointer, int nameRef) {
+        edges.setInt(edgePointer + E_KV, nameRef);
     }
 
     public int getNodeA(long edgePointer) {
@@ -292,8 +306,8 @@ class BaseGraphNodesAndEdges {
         return edges.getInt(edgePointer + E_GEO);
     }
 
-    public int getNameRef(long edgePointer) {
-        return edges.getInt(edgePointer + E_NAME);
+    public int getKeyValuesRef(long edgePointer) {
+        return edges.getInt(edgePointer + E_KV);
     }
 
     public void setEdgeRef(long nodePointer, int edgeRef) {

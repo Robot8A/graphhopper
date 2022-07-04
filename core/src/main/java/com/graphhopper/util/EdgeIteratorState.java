@@ -21,6 +21,8 @@ import com.graphhopper.routing.ev.*;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.IntsRef;
 
+import java.util.Map;
+
 /**
  * This interface represents an edge and is one possible state of an EdgeIterator.
  * Example:
@@ -50,11 +52,6 @@ public interface EdgeIteratorState {
         @Override
         public String getName() {
             return "reverse";
-        }
-
-        @Override
-        public int getVersion() {
-            return 1;
         }
 
         @Override
@@ -90,15 +87,9 @@ public interface EdgeIteratorState {
     int getEdgeKey();
 
     /**
-     * @return the edge id of the first original edge of the current edge. This is needed for shortcuts
-     * in edge-based contraction hierarchies and otherwise simply returns the id of the current edge.
+     * Like #getEdgeKey, but returns the reverse key. For loops the reverse key is the same as the key.
      */
-    int getOrigEdgeFirst();
-
-    /**
-     * @see #getOrigEdgeFirst()
-     */
-    int getOrigEdgeLast();
+    int getReverseEdgeKey();
 
     /**
      * Returns the node used to instantiate the EdgeIterator. Often only used for convenience reasons.
@@ -191,20 +182,44 @@ public interface EdgeIteratorState {
     <T extends Enum<?>> EdgeIteratorState setReverse(EnumEncodedValue<T> property, T value);
 
     <T extends Enum<?>> EdgeIteratorState set(EnumEncodedValue<T> property, T fwd, T bwd);
-    
+
     String get(StringEncodedValue property);
-    
+
     EdgeIteratorState set(StringEncodedValue property, String value);
-    
+
     String getReverse(StringEncodedValue property);
-    
+
     EdgeIteratorState setReverse(StringEncodedValue property, String value);
-    
+
     EdgeIteratorState set(StringEncodedValue property, String fwd, String bwd);
 
+    /**
+     * Identical to calling getKeyValues().get("name"). I.e. if you need other properties you should prefer to call
+     * getKeyValues directly instead of getName. Please note that for backward compatibility getName returns an empty
+     * String instead of null if there was no name set.
+     *
+     * @return the stored value for the key "name" in the key-values space of this edge
+     */
     String getName();
 
-    EdgeIteratorState setName(String name);
+    /**
+     * This stores the specified key-value pairs in the storage of the current edge. This is more flexible compared to
+     * the mechanism of flags and EncodedValue and allows to store sparse key value pairs much more efficient.
+     * But it is slower and more inefficient on retrieval and this setKeyValues method
+     * should be called only once per edge as it allocates new space everytime this method is called. I.e. for many
+     * usages like in a custom_model currently the EncodedValue-approach should be preferred.
+     */
+    EdgeIteratorState setKeyValues(Map<String, Object> map);
+
+    Map<String, Object> getKeyValues();
+
+    /**
+     * This method returns the value of the specified key. If you need more than one value you should likely better use
+     * getKeyValues().
+     *
+     * @see #setKeyValues(Map)
+     */
+    Object getValue(String key);
 
     /**
      * Clones this EdgeIteratorState.
