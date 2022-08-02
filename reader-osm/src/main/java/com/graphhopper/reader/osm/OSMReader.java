@@ -18,6 +18,7 @@
 package com.graphhopper.reader.osm;
 
 import com.carrotsearch.hppc.*;
+import com.carrotsearch.hppc.cursors.LongCursor;
 import com.graphhopper.coll.*;
 import com.graphhopper.coll.LongIntMap;
 import com.graphhopper.reader.*;
@@ -216,6 +217,9 @@ public class OSMReader implements DataReader {
                     if (relation.hasTag("type", "restriction"))
                         prepareRestrictionRelation(relation);
 
+                    if (relation.hasTag("type", "multipolygon"))
+                        prepareMultipolygonRelation(relation);
+
                     if (++tmpRelationCounter % 100_000 == 0) {
                         LOGGER.info(nf(tmpRelationCounter) + " (preprocess), osmWayMap:" + nf(getRelFlagsMap().size())
                                 + " " + Helper.getMemInfo());
@@ -239,10 +243,18 @@ public class OSMReader implements DataReader {
         }
     }
 
+    private void prepareMultipolygonRelation(ReaderRelation relation) {
+        OSMMultipolygon mpRel = createOSMMultipolygon(relation);
+        if (mpRel != null)
+            for (ReaderRelation.Member member : relation.getMembers())
+                if (member.getType() == ReaderRelation.Member.WAY)
+                    getOsmWayIdSet().add(member.getRef());
+    }
+
     /**
      * @return all required osmWayIds to process e.g. relations.
      */
-    private LongSet getOsmWayIdSet() {
+    LongSet getOsmWayIdSet() {
         return osmWayIdSet;
     }
 
@@ -394,7 +406,7 @@ public class OSMReader implements DataReader {
                         if (lastBarrier < 0)
                             lastBarrier = 0;
 
-                        // add way up to barrier shadow node                        
+                        // add way up to barrier shadow node
                         int length = i - lastBarrier + 1;
                         LongArrayList partNodeIds = new LongArrayList();
                         partNodeIds.add(osmNodeIds.buffer, lastBarrier, length);
@@ -426,10 +438,10 @@ public class OSMReader implements DataReader {
         } else {
             // ORS-GH MOD START - code injection point
             if (!onCreateEdges(way, osmNodeIds, edgeFlags, createdEdges)) {
-            // ORS-GH MOD END
-            // no barriers - simply add the whole way
-            createdEdges.addAll(addOSMWay(way.getNodes(), edgeFlags, wayOsmId));
-        }
+                // ORS-GH MOD END
+                // no barriers - simply add the whole way
+                createdEdges.addAll(addOSMWay(way.getNodes(), edgeFlags, wayOsmId));
+            }
         }
 
         for (EdgeIteratorState edge : createdEdges) {
@@ -477,7 +489,7 @@ public class OSMReader implements DataReader {
             }
         }
     }
-        // ORS-GH MOD END
+    // ORS-GH MOD END
 
     // ORS-GH MOD START - Move the distance calculation to a separate method so it can be cleanly overridden
     protected void recordWayDistance(ReaderWay way, LongArrayList osmNodeIds) {
@@ -534,6 +546,19 @@ public class OSMReader implements DataReader {
                         tcs.addTurnInfo(entry.edgeFrom, entry.nodeVia, entry.edgeTo, entry.flags);
                     }
                 }
+            }
+        }
+        if (relation.hasTag("type", "multipolygon")) {
+            OSMMultipolygon mpRelation = createOSMMultipolygon(relation);
+            if (mpRelation != null) {
+                GraphExtension extendedStorage = HelperORS.getOSMMultipolygonExtensions(graph.getExtension());
+                //ORS-GH MOD END
+                if (extendedStorage instanceof OSMMultipolygonExtension) {
+                    OSMMultipolygonExtension mp = (OSMMultipolygonExtension) extendedStorage;
+                    mpRelation.process(this);
+                    //TODO mp.addMpInfo(mpRelation);
+                }
+
             }
         }
     }
@@ -870,7 +895,7 @@ public class OSMReader implements DataReader {
                 if (!distCalc.isCrossBoundary(lon, prevLon)) {
                     // ORS-GH MOD START - Allow overriding of using 3D calculations
                     if (calcDistance3D) {
-                    towerNodeDistance += distCalc3D.calcDist(prevLat, prevLon, prevEle, lat, lon, ele);
+                        towerNodeDistance += distCalc3D.calcDist(prevLat, prevLon, prevEle, lat, lon, ele);
                     } else {
                         towerNodeDistance += distCalc.calcDist(prevLat, prevLon, lat, lon);
                     }
@@ -890,7 +915,7 @@ public class OSMReader implements DataReader {
             }
         }
         if (towerNodeDistance < 0.0001) {
-            // As investigation shows often two paths should have crossed via one identical point 
+            // As investigation shows often two paths should have crossed via one identical point
             // but end up in two very close points.
             zeroCounter++;
             towerNodeDistance = 0.0001;
@@ -903,7 +928,7 @@ public class OSMReader implements DataReader {
         }
 
         if (Double.isInfinite(towerNodeDistance) || towerNodeDistance > maxDistance) {
-            // Too large is very rare and often the wrong tagging. See #435 
+            // Too large is very rare and often the wrong tagging. See #435
             // so we can avoid the complexity of splitting the way for now (new towernodes would be required, splitting up geometry etc)
             LOGGER.warn("Bug in OSM or GraphHopper. Too big tower node distance " + towerNodeDistance + " reset to large value, osm way " + wayOsmId);
             towerNodeDistance = maxDistance;
@@ -944,10 +969,10 @@ public class OSMReader implements DataReader {
             // just try and get the tower node. If that fails, then kill the system
             tmpNode = getNodeMap().get(osmId);
             if (tmpNode == EMPTY_NODE || tmpNode < 0) {
-            throw new RuntimeException("Conversion pillarNode to towerNode already happended!? "
-                    + "osmId:" + osmId + " pillarIndex:" + tmpNode);
+                throw new RuntimeException("Conversion pillarNode to towerNode already happended!? "
+                        + "osmId:" + osmId + " pillarIndex:" + tmpNode);
             }
-        // ORS-GH MOD END
+            // ORS-GH MOD END
         } else {
             if (convertToTowerNode) {
                 // convert pillarNode type to towerNode, make pillar values invalid
@@ -1045,6 +1070,31 @@ public class OSMReader implements DataReader {
             if (fromWayID >= 0 && toWayID >= 0 && viaNodeID >= 0) {
                 return new OSMTurnRelation(fromWayID, viaNodeID, toWayID, type);
             }
+        }
+        return null;
+    }
+
+    /**
+     * Creates an OSM multipolygon out of an unspecified OSM relation
+     * <p>
+     *
+     * @return the OSM multipolygon, <code>null</code>, if unsupported multipolygon
+     */
+    OSMMultipolygon createOSMMultipolygon(ReaderRelation relation) {
+        OSMMultipolygon.Type type = OSMMultipolygon.Type.getRestrictionType(relation);
+        if (type != OSMMultipolygon.Type.UNSUPPORTED) {
+            // TODO find a better way of checking valid multipolygons for routing
+            ReaderWay tmpWay = new ReaderWay(0);
+            for (Map.Entry<String, Object> e : relation.getTags().entrySet()) {
+                String key = e.getKey();
+                if (!Objects.equals(key, "type"))
+                    tmpWay.setTag(key, e.getValue());
+            }
+            boolean valid = this.encodingManager.acceptWay(tmpWay, new EncodingManager.AcceptWay());
+            // End TODO
+
+            if (valid)
+                return new OSMMultipolygon(relation.getMembers());
         }
         return null;
     }
